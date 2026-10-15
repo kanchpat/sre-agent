@@ -1,0 +1,6 @@
+absl-py>=2.1.0
+google-adk>=1.0.0
+google-auth>=2.35.0
+google-cloud-aiplatform>=1.75.0
+google-cloud-bigquery>=3.27.0
+google-genai>=1.5.0

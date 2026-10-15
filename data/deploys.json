@@ -1,0 +1,38 @@
+[
+  {
+    "deploy_id": "dep-9014",
+    "sha": "f08a112",
+    "service": "cart",
+    "deployed_at": "2026-04-08T11:20:05Z",
+    "author": "marcus.vance@corp.example.com",
+    "summary": "Bump Redis session TTL for guest carts from 15m to 30m",
+    "status": "SUCCESS"
+  },
+  {
+    "deploy_id": "dep-9015",
+    "sha": "c91d440",
+    "service": "auth",
+    "deployed_at": "2026-04-08T12:45:10Z",
+    "author": "priya.nair@corp.example.com",
+    "summary": "Add structured retry logging for idp.internal token refresh",
+    "status": "SUCCESS"
+  },
+  {
+    "deploy_id": "dep-9016",
+    "sha": "7b2e804",
+    "service": "inventory",
+    "deployed_at": "2026-04-08T13:50:42Z",
+    "author": "devon.brooks@corp.example.com",
+    "summary": "Update warehouse stock reservation cache key prefix",
+    "status": "SUCCESS"
+  },
+  {
+    "deploy_id": "dep-9017",
+    "sha": "a3f9c21",
+    "service": "checkout",
+    "deployed_at": "2026-04-08T14:31:18Z",
+    "author": "alice.chen@corp.example.com",
+    "summary": "Refactor order total calculation for readability",
+    "status": "SUCCESS"
+  }
+]

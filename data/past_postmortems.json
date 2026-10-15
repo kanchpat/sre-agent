@@ -1,0 +1,20 @@
+[
+  {
+    "memory_id": "mem-postmortem-1904",
+    "incident_id": "Incident-1904",
+    "recorded_at": "2026-03-19T16:10:00Z",
+    "service": "auth",
+    "pattern_signature": "upstream timeout to idp.internal at :15 past the hour",
+    "summary": "Known benign partner IdP batch sync at :15 past the hour causes a 60-90 second burst of 'upstream timeout to idp.internal' warnings and brief circuit-breaker half-open events in auth-service.",
+    "remediation_guidance": "DO NOT page the auth team or roll back auth-service deployments when idp.internal timeouts occur at :15 and self-heal within 2 minutes. Verify whether p99 latency and error rates returned to baseline before investigating other services."
+  },
+  {
+    "memory_id": "mem-postmortem-2051",
+    "incident_id": "Incident-2051",
+    "recorded_at": "2026-03-28T09:40:00Z",
+    "service": "checkout",
+    "pattern_signature": "PgBouncer PoolTimeout (active=100/100) following ORM query loop",
+    "summary": "Checkout service shares a 100-connection PgBouncer pool. Any unbatched ORM query inside a per-item loop rapidly exhausts all 100 connections when checkout RPS exceeds 30 req/s.",
+    "remediation_guidance": "Check recent checkout deployments within 5 minutes of PoolTimeout onset and inspect ORM queries in services/checkout/orders.py for N+1 SELECT patterns."
+  }
+]

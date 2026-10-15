@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.mypy_cache/
+
+# Environment & credentials
+.env
+*.json.key
+service-account*.json
+
+# Generated workshop local artifacts
+data/*.jsonl
+sre_guardian_agent/*.pkl
+*.log
+BUILD

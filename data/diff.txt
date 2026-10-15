@@ -1,0 +1,72 @@
+commit a3f9c21
+Author: Alice Chen <alice.chen@corp.example.com>
+Date:   2026-04-08T14:31:18Z
+Service: checkout
+
+    Refactor order total calculation for readability
+
+diff --git a/services/checkout/orders.py b/services/checkout/orders.py
+index 4819a2b..9f03e11 100644
+--- a/services/checkout/orders.py
++++ b/services/checkout/orders.py
+@@ -41,11 +41,11 @@ def calculate_order_total(order_id: str, item_ids: list[str]) -> int:
+-    # Fetch all items in a single batched query:
+-    # SELECT * FROM order_items WHERE order_id = $1
+-    items = OrderItem.objects.filter(order_id=order_id).all()
+-    total_cents = sum(item.price_cents * item.quantity for item in items)
++    # Refactored per-item lookup for cleaner item validation:
++    total_cents = 0
++    for item_id in item_ids:
++        # Executes: SELECT * FROM order_items WHERE id = $1 (1 query per item!)
++        item = OrderItem.objects.get(id=item_id)
++        total_cents += item.price_cents * item.quantity
+     return total_cents
+
+---
+commit 7b2e804
+Author: Devon Brooks <devon.brooks@corp.example.com>
+Date:   2026-04-08T13:50:42Z
+Service: inventory
+
+    Update warehouse stock reservation cache key prefix
+
+diff --git a/services/inventory/cache.py b/services/inventory/cache.py
+index 1120c4a..3389b01 100644
+--- a/services/inventory/cache.py
++++ b/services/inventory/cache.py
+@@ -12,3 +12,3 @@
+-RESERVATION_PREFIX = "inv:res:v1:"
++RESERVATION_PREFIX = "inv:res:v2:"
+
+---
+commit c91d440
+Author: Priya Nair <priya.nair@corp.example.com>
+Date:   2026-04-08T12:45:10Z
+Service: auth
+
+    Add structured retry logging for idp.internal token refresh
+
+diff --git a/services/auth/idp_client.py b/services/auth/idp_client.py
+index 8821f09..8944c10 100644
+--- a/services/auth/idp_client.py
++++ b/services/auth/idp_client.py
+@@ -29,2 +29,3 @@
+     except TimeoutError:
++        logger.warning("upstream timeout to idp.internal (retry=1)")
+         raise
+
+---
+commit f08a112
+Author: Marcus Vance <marcus.vance@corp.example.com>
+Date:   2026-04-08T11:20:05Z
+Service: cart
+
+    Bump Redis session TTL for guest carts from 15m to 30m
+
+diff --git a/services/cart/session.py b/services/cart/session.py
+index 5012a00..5012b99 100644
+--- a/services/cart/session.py
++++ b/services/cart/session.py
+@@ -8,1 +8,1 @@
+-GUEST_CART_TTL_SECONDS = 900
++GUEST_CART_TTL_SECONDS = 1800
