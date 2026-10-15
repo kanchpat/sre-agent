@@ -1,5 +1,7 @@
 # SRE Guardian (`Incident-2277`) — Multi-Agent Incident Response Workshop on Vertex AI & Google ADK
 
+*Disclaimer: This is a personal project. The views, code, and opinions expressed here are my own and do not represent those of my current or past employers.*
+
 An end-to-end hands-on workshop for building, scaling, optimizing, and governing a production **Site Reliability Engineering (SRE) Multi-Agent System** using the **Google Agent Development Kit (`google-adk`)**, **Vertex AI Agent Engine**, **Google Cloud BigQuery**, and **Google Cloud Model Armor**.
 
 > **Companion Blog Post**: This workshop brings to life the architecture and lifecycle framework from the Google Cloud Blog post **[20 questions for the agentic enterprise](https://cloud.google.com/blog/products/ai-machine-learning/20-questions-for-the-agentic-enterprise)** across four phases: **Build**, **Scale**, **Optimize**, and **Govern**.
@@ -85,6 +87,7 @@ flowchart LR
 .
 ├── README.md                                  # Workshop guide & 20-Questions mapping
 ├── ARCHITECTURE.md                            # System & sequence diagrams (Mermaid)
+├── LICENSE                                    # Apache License 2.0
 ├── requirements.txt                           # Python dependencies
 ├── .env.example                               # Environment variable template
 ├── provided.py                                # Shared Vertex AI, BigQuery, Model Armor & ADK helpers
@@ -299,3 +302,12 @@ python3 evals/evaluate_sre_agent.py
 ```
 
 *(Note: All synthetic emails and tokens in the dataset use RFC 2606 reserved example domains such as `@corp.example.com` and `@example.com`.)*
+
+---
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).
+
+*Disclaimer: This is a personal project. The views, code, and opinions expressed here are my own and do not represent those of my current or past employers.*
+
