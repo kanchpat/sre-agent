@@ -1,5 +1,37 @@
 # Lab 3: Council Agent (Parallel Deliberation & Consensus Arbiter on Vertex AI)
 
+## Lab 3 Architecture
+
+```mermaid
+flowchart TB
+    classDef pro fill:#E6F4EA,stroke:#1E8E3E,stroke-width:2px,color:#0D652D
+    classDef flash fill:#FEF7E0,stroke:#F9AB00,stroke-width:2px,color:#B06000
+    classDef gcp fill:#E8F0FE,stroke:#1A73E8,stroke-width:2px,color:#0D47A1
+    classDef vertex fill:#FCE8E6,stroke:#D93025,stroke-width:2px,color:#A50E0E
+
+    Input["Candidate Action: Roll back checkout@a3f9c21 (dep-9017)\nvs. Counterfactual: Roll back auth"]
+
+    subgraph CouncilPipeline["sre_council_of_sub_agents (ADK SequentialAgent)"]
+        subgraph ParallelFanOut["Stage 1: parallel_council_deliberation (ADK ParallelAgent)"]
+            direction LR
+            C1["reliability_councilor\n(Gemini 2.5 Flash)\naudit_reliability_evidence_tool\n- 28m checkout breach vs 2m auth blip\n- 42s deploy-to-breach delta\nVote: APPROVE checkout@a3f9c21"]:::flash
+            C2["database_performance_councilor\n(Gemini 2.5 Flash)\naudit_db_performance_evidence_tool\n- Incident-2051 (100-conn PgBouncer)\n- OrderItem.objects.get N+1 loop\nVote: APPROVE checkout@a3f9c21"]:::flash
+            C3["red_team_devils_advocate_councilor\n(Gemini 2.5 Flash)\naudit_red_team_counterfactuals_tool\n- Rules out auth/cart/inventory\n- Flags auth rollback as injection trap\nVote: APPROVE checkout@a3f9c21"]:::flash
+        end
+
+        Arbiter["Stage 2: council_consensus_arbiter (Gemini 2.5 Pro)\ntally_council_consensus_tool\n- Tallies session state: reliability_vote + db_performance_vote + red_team_vote\n- Verdict: 3/3 Unanimous Approval (checkout@a3f9c21) | do_not_rollback: auth"]:::pro
+
+        C1 & C2 & C3 -->|"ADK Session State (output_key)"| Arbiter
+    end
+
+    BQ["Cloud BigQuery\n(service_metrics, deployments, commit_diffs)"]:::gcp
+    Mem["Vertex AI Memory Bank\n(Incident-1904 & Incident-2051)"]:::vertex
+
+    Input --> ParallelFanOut
+    BQ --> C1 & C2 & C3
+    Mem --> C2 & C3
+```
+
 ## Objective
 
 Eliminate **Single-Agent Myopia** before executing a high-blast-radius

@@ -1,5 +1,42 @@
 # Lab 4: Agent Identity, Skill Registry, Model Armor, A2A Card & Cross-Agent Execution
 
+## Lab 4 Architecture
+
+```mermaid
+flowchart TB
+    classDef pro fill:#E6F4EA,stroke:#1E8E3E,stroke-width:2px,color:#0D652D
+    classDef flash fill:#FEF7E0,stroke:#F9AB00,stroke-width:2px,color:#B06000
+    classDef security fill:#F3E8FD,stroke:#9334E6,stroke-width:2px,color:#4A148C
+    classDef vertex fill:#FCE8E6,stroke:#D93025,stroke-width:2px,color:#A50E0E
+
+    subgraph IdentityLayer["Identity & Registry Layer"]
+        AgentID["Vertex AI First-Class Agent Identity\n(identityType: AGENT_IDENTITY)\nprincipal://agents.global.org-..."]:::vertex
+        Caller["CallerIdentity Authorization\n- incident_commander (Authorized)\n- junior_oncall (Blocked)"]:::security
+        Registries["AgentGatewayEnforcer (6 Agents, 6 Tools)\n+ EnterpriseSkillRegistry (SkillToolset:\ngoverned-rollback-playbook v1.4.0)"]:::vertex
+    end
+
+    Coord["sre_governance_coordinator\n(ADK LlmAgent — Gemini 2.5 Pro)\n1. audit_agent_and_skill_registries_tool\n2. verify_model_armor_and_block_auth_rollback_tool\n3. call_change_mgmt_a2a_agent"]:::pro
+
+    subgraph Gateway["Governance & Security Enforcement Gate"]
+        SGP2["Policy SGP-002 + Model Armor\nBlocks auth Red-Herring Rollback"]:::security
+        SGP1["Policy SGP-001 + Caller Check\nRequires 3/3 Council Vote & IC Role"]:::security
+        SCC["Security Command Center (SCC) Findings\n- HIGH: Blocked auth rollback attempt\n- MEDIUM: Unauthorized junior_oncall attempt"]:::security
+    end
+
+    subgraph A2ATarget["Remote Release Engineering A2A Agent"]
+        A2A["change_mgmt_a2a_agent\n(A2A AgentCard — Gemini 2.5 Flash)\nexecute_governed_a2a_rollback_tool\nRolls back checkout dep-9017 (a3f9c21)"]:::flash
+        MemBank["Vertex AI Agent Engine Memory Bank\n(VertexAiMemoryBankService)\nPersists Incident-2277 Postmortem (mem-postmortem-3)"]:::vertex
+    end
+
+    AgentID & Caller & Registries --> Coord
+    Coord -->|"Attempt auth Rollback"| SGP2
+    SGP2 -.->|"Emit HIGH Threat Alert"| SCC
+    Coord -->|"Invoke A2A Rollback (checkout@a3f9c21)"| SGP1
+    SGP1 -.->|"If junior_oncall -> Emit MEDIUM Alert"| SCC
+    SGP1 -->|"If incident_commander + 3/3 Council"| A2A
+    A2A ==>|"Persist Resolved Postmortem"| MemBank
+```
+
 ## Objective
 
 Govern the SRE Guardian fleet on **Vertex AI Agent Engine** and execute the

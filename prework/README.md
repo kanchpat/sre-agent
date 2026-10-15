@@ -6,6 +6,48 @@ Before starting **Lab 1**, run the Prework script to populate the
 **Vertex AI Agent Engine Long-Term Memory Bank (`VertexAiMemoryBankService` &
 `VertexAiSessionService`)**.
 
+## Stage 0 (Prework) Architecture
+
+```mermaid
+flowchart LR
+    classDef script fill:#FEF7E0,stroke:#F9AB00,stroke-width:2px,color:#B06000
+    classDef gcp fill:#E8F0FE,stroke:#1A73E8,stroke-width:2px,color:#0D47A1
+    classDef vertex fill:#FCE8E6,stroke:#D93025,stroke-width:2px,color:#A50E0E
+    classDef security fill:#F3E8FD,stroke:#9334E6,stroke-width:2px,color:#4A148C
+
+    subgraph LocalAssets["Local Workshop Assets"]
+        Gen["data/seed_bigquery.py\n(Deterministic Generator)"]:::script
+        Files["data/deploys.json\ndata/diff.txt\ndata/past_postmortems.json"]:::script
+        SkillFiles["skills/*/SKILL.md\npolicies/*.yaml"]:::script
+    end
+
+    Seeder["prework/seed_bigquery_and_memory.py\n(Stage 0 Provisioner)"]:::script
+
+    subgraph BigQuery["Google Cloud BigQuery (sre_workshop)"]
+        T1["service_metrics\n(240 rows: 14:00-14:59 UTC)"]:::gcp
+        T2["app_logs\n(7,200 rows + 60 Injections + 180 PII)"]:::gcp
+        T3["deployments\n(4 rows: dep-9014..dep-9017)"]:::gcp
+        T4["commit_diffs\n(4 git diffs: sha a3f9c21)"]:::gcp
+    end
+
+    subgraph AgentEngine["Vertex AI Agent Engine (reasoningEngines)"]
+        Identity["First-Class Agent Identity\n(identityType: AGENT_IDENTITY)"]:::vertex
+        MemBank["VertexAiMemoryBankService\n- Incident-1904 (auth :15 IdP sync)\n- Incident-2051 (checkout PgBouncer)"]:::vertex
+        Sessions["VertexAiSessionService\n(Stateful ADK Sessions)"]:::vertex
+    end
+
+    subgraph Governance["Security & Skill Registries"]
+        Armor["Google Cloud Model Armor\n(sre-guardian-armor-policy)"]:::security
+        SkillReg["EnterpriseSkillRegistry\n(incident-triage-runbook v2.1.0\ngoverned-rollback-playbook v1.4.0)"]:::security
+    end
+
+    Gen & Files & SkillFiles --> Seeder
+    Seeder -->|"1. Create & Load 4 Tables"| T1 & T2 & T3 & T4
+    Seeder -->|"2. Provision / Discover Engine"| Identity & Sessions
+    Seeder -->|"3. Seed Long-Term Postmortems"| MemBank
+    Seeder -->|"4. Register Policies & Skills"| Armor & SkillReg
+```
+
 ## What Prework Populates
 
 1.  **Google Cloud BigQuery Dataset (`$GOOGLE_CLOUD_PROJECT.sre_workshop`)**:

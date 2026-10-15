@@ -197,6 +197,29 @@ gcloud services enable \
 
 ### Stage 0: Prework — Seed Cloud BigQuery & Vertex AI Memory Bank
 
+```mermaid
+flowchart LR
+    SeedScript["seed_bigquery_and_memory.py"]
+
+    subgraph TelemetryData["1. Incident-2277 Telemetry Data"]
+        Logs["logs (22 rows)<br/>checkout DB exhaustion & auth token warnings"]
+        Metrics["metrics (23 rows)<br/>p99 latency, error_rate, pool_utilization"]
+        Changes["changes (10 rows)<br/>rev-checkout-v48 & rev-auth-v19"]
+    end
+
+    subgraph PostmortemData["2. Historical Runbooks & Postmortems"]
+        Docs["5 Past Incident Postmortems<br/>(INC-1402, INC-1811, INC-1994, INC-2050, INC-2188)"]
+    end
+
+    subgraph GCP["Google Cloud Platform (or --local_only Fallback)"]
+        BQ[("Cloud BigQuery<br/>Dataset: sre_incident_2277")]
+        MB[("Vertex AI Agent Engine<br/>Memory Bank (reasoningEngines)")]
+    end
+
+    SeedScript --> TelemetryData --> BQ
+    SeedScript --> PostmortemData --> MB
+```
+
 ```bash
 # Cloud mode (seeds BigQuery dataset + Vertex AI Agent Engine Memory Bank):
 python3 prework/seed_bigquery_and_memory.py \
@@ -209,6 +232,35 @@ python3 prework/seed_bigquery_and_memory.py --local_only
 
 ### Stage 1: Lab 1 — Immediate Triage Multi-Agent System
 
+```mermaid
+flowchart TB
+    User(["On-Call Engineer"]) -->|"Incident-2277 Query"|Coord["sre_triage_coordinator<br/>(ADK LlmAgent Coordinator)"]
+
+    subgraph Specialists["Specialist Sub-Agents (AgentTool)"]
+        LogAgent["log_analyst_agent<br/>Queries ERROR/CRITICAL logs"]
+        MetricAgent["metrics_analyst_agent<br/>Computes pre/post anomaly ratios"]
+        ChangeAgent["change_correlator_agent<br/>Correlates deploy timestamps + Memory Bank"]
+    end
+
+    Coord -->|"1. Inspect logs"|LogAgent
+    Coord -->|"2. Check metric spikes"|MetricAgent
+    Coord -->|"3. Correlate deploys & history"|ChangeAgent
+
+    subgraph Backends["Google Cloud Backends"]
+        BQ_Logs[("BigQuery: logs")]
+        BQ_Metrics[("BigQuery: metrics")]
+        BQ_Changes[("BigQuery: changes")]
+        MemoryBank[("Vertex AI Agent Engine<br/>Memory Bank (INC-1811)")]
+    end
+
+    LogAgent --> BQ_Logs
+    MetricAgent --> BQ_Metrics
+    ChangeAgent --> BQ_Changes
+    ChangeAgent --> MemoryBank
+
+    LogAgent & MetricAgent & ChangeAgent -->|"Synthesize Evidence"|Verdict["Triage Brief:<br/>Root Cause = checkout-service (rev-checkout-v48)<br/>Red Herring = auth-service (rev-auth-v19)"]
+```
+
 ```bash
 python3 lab1_triage_agent/agent_complete.py \
   --project_id="${GOOGLE_CLOUD_PROJECT}" \
@@ -218,6 +270,33 @@ python3 lab1_triage_agent/agent_complete.py \
 
 ### Stage 2: Lab 2 — Guardrails, Sandbox, Self-Reflection & LLM Judge
 
+```mermaid
+flowchart TB
+    Input(["Incoming User / Log Prompt"]) --> Gate
+
+    subgraph DefenseInDepth["1. Defense-in-Depth Input Guardrail"]
+        Gate{"before_model_callback"}
+        Armor["Google Cloud Model Armor API<br/>(sanitizeUserPrompt)"]
+        Regex["Deterministic Regex Policy<br/>(Destructive SQL & Shell Blocker)"]
+        Gate --> Armor & Regex
+    end
+
+    Armor & Regex -->|"Prompt Injection Detected"|Blocked["Blocked Prior to LLM Invocation"]
+    Armor & Regex -->|"Sanitized & Safe"|Agent["guarded_sre_triage_agent"]
+
+    subgraph Sandbox["2. Isolated Statistical Sandbox"]
+        Tool["run_statistical_correlation_sandbox()"]
+        Stats["Pre/Post Baseline Welch's t-test &<br/>Timestamp Lag Analysis"]
+        Agent --> Tool --> Stats
+    end
+
+    subgraph Reflection["3. Self-Reflection & LLM-as-a-Judge"]
+        Critic["Self-Reflection Critic<br/>Audits Initial Hypothesis vs. p-value"]
+        Judge["eval_judge.py<br/>Scores Groundedness, Red-Herring Rejection & Safety"]
+        Stats --> Critic --> Judge
+    end
+```
+
 ```bash
 python3 lab2_guardrails_reflection_sandbox/agent_complete.py \
   --project_id="${GOOGLE_CLOUD_PROJECT}" \
@@ -226,6 +305,28 @@ python3 lab2_guardrails_reflection_sandbox/agent_complete.py \
 
 ### Stage 3: Lab 3 — Parallel Council of Sub-Agents & Consensus Arbiter
 
+```mermaid
+flowchart TB
+    Start(["Incident-2277 Investigation Trigger"]) --> Pipeline
+
+    subgraph Pipeline["sre_incident_investigation_pipeline (ADK SequentialAgent)"]
+        direction TB
+
+        subgraph Council["Step 1: parallel_hypothesis_council (ADK ParallelAgent)"]
+            direction LR
+            H_Checkout["hypothesis_checkout_agent<br/>Tests rev-checkout-v48 DB Pool Exhaustion"]
+            H_Auth["hypothesis_auth_agent<br/>Tests rev-auth-v19 Retry Storm"]
+            H_Infra["hypothesis_infra_agent<br/>Tests Cloud SQL / GKE Node Contention"]
+        end
+
+        Arbiter["Step 2: consensus_arbiter_agent (ADK LlmAgent)<br/>Reads session.state['hypothesis_*'] & Synthesizes Ranked Verdict"]
+
+        Council -->|"Writes structured JSON findings<br/>to shared session.state"|Arbiter
+    end
+
+    Arbiter --> Verdict["Consensus Executive Brief:<br/>1. checkout-service (CONFIRMED - 96% confidence)<br/>2. auth-service (REFUTED - Downstream Symptom)<br/>3. shared-infra (REFUTED - Healthy Hardware)"]
+```
+
 ```bash
 python3 lab3_council_agent/agent_complete.py \
   --project_id="${GOOGLE_CLOUD_PROJECT}" \
@@ -233,6 +334,28 @@ python3 lab3_council_agent/agent_complete.py \
 ```
 
 ### Stage 4: Lab 4 — Agent Identity, Governance & Cross-Agent A2A Rollback
+
+```mermaid
+flowchart LR
+    Commander(["Caller Persona:<br/>incident_commander OR junior_oncall"]) --> TriageAgent["sre_triage_coordinator<br/>(Remediation Caller)"]
+
+    subgraph Governance["1. Agent Identity & Tool Governance"]
+        ID["AgentIdentityContext<br/>(SPIFFE ID + GCP Service Account)"]
+        Gateway{"GovernancePolicyGateway<br/>Checks Role & Blast Radius"}
+        TriageAgent --> ID --> Gateway
+    end
+
+    Gateway -->|"Role = junior_oncall<br/>(Unauthorized)"|Denied["BLOCKED: Requires<br/>incident_commander Approval"]
+
+    subgraph A2A["2. Agent-to-Agent (A2A) Protocol Boundary"]
+        Card["GET /.well-known/agent.json<br/>(AgentCard Discovery)"]
+        RPC["JSON-RPC 2.0: tasks/send<br/>(Signed A2A TaskEnvelope)"]
+        Remote["Remote DeploymentRollbackAgent<br/>Verifies Caller Identity & Executes Rollback"]
+        Gateway -->|"Role = incident_commander<br/>(Authorized)"|Card --> RPC --> Remote
+    end
+
+    Remote --> Done(["COMPLETED: Rolled back<br/>rev-checkout-v48 -> rev-checkout-v47"])
+```
 
 ```bash
 # 1. Authorized execution as Incident Commander (executes rollback via A2A):

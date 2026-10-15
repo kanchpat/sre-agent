@@ -1,5 +1,47 @@
 # Lab 1: Immediate Incident Triage Agent (Cloud BigQuery, Multi-Agent, Skills, MCP & Vertex AI Memory Bank)
 
+## Lab 1 Architecture
+
+```mermaid
+flowchart TB
+    classDef pro fill:#E6F4EA,stroke:#1E8E3E,stroke-width:2px,color:#0D652D
+    classDef flash fill:#FEF7E0,stroke:#F9AB00,stroke-width:2px,color:#B06000
+    classDef gcp fill:#E8F0FE,stroke:#1A73E8,stroke-width:2px,color:#0D47A1
+    classDef vertex fill:#FCE8E6,stroke:#D93025,stroke-width:2px,color:#A50E0E
+
+    SRE["On-Call SRE Query\n'Why are checkout and auth alerting in Incident-2277?'"]
+
+    subgraph Coordinator["Root Orchestrator (ADK LlmAgent)"]
+        Coord["sre_triage_coordinator\n(Vertex AI Gemini 2.5 Pro)"]:::pro
+        Skills["ADK SkillToolset (L1 -> L2)\nload_skill('incident-triage-runbook')"]:::vertex
+        Coord <-->|"Progressive Disclosure"| Skills
+    end
+
+    subgraph SubAgents["Specialist Sub-Agents (SubAgentDispatchTool -> Gemini 2.5 Flash)"]
+        direction LR
+        A_Metrics["metrics_and_catalog_agent\n- query_metrics_Summary_tool\n- lookup_knowledge_catalog_tool\n- ADK BigQueryToolset (WriteMode.BLOCKED)"]:::flash
+        A_Logs["logs_and_memory_agent\n- recall_similar_incidents_tool\n- query_app_logs_tool\n- ADK BigQueryToolset"]:::flash
+        A_Deploys["deploy_and_diff_agent\n- list_recent_deployments_tool\n- fetch_commit_diff_tool\n- ADK BigQueryToolset"]:::flash
+    end
+
+    subgraph Backends["Google Cloud Data & Memory Plane"]
+        direction LR
+        BQ_Metrics["BigQuery: service_metrics\n+ Knowledge Catalog (Tier-0 SLO: 250ms)\n(checkout: 28m breach vs auth: 2m blip)"]:::gcp
+        MemBank["Vertex AI Memory Bank\n(VertexAiMemoryBankService)\nRecalls Incident-1904 & Incident-2051"]:::vertex
+        BQ_Logs["BigQuery: app_logs\n(PgBouncer PoolTimeout 100/100)"]:::gcp
+        BQ_Deploys["BigQuery: deployments & commit_diffs\n(dep-9017 at 14:31:18Z -> sha a3f9c21 N+1 loop)"]:::gcp
+    end
+
+    SRE --> Coord
+    Coord -->|"1. call_metrics_and_catalog_agent"| A_Metrics
+    Coord -->|"2. call_logs_and_memory_agent"| A_Logs
+    Coord -->|"3. call_deploy_and_diff_agent"| A_Deploys
+
+    A_Metrics --> BQ_Metrics
+    A_Logs --> MemBank & BQ_Logs
+    A_Deploys --> BQ_Deploys
+```
+
 ## Objective
 
 Build a functional **Vertex AI & ADK Multi-Agent Triage System** that answers
