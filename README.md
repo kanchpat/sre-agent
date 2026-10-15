@@ -1,6 +1,8 @@
 # SRE Guardian (`Incident-2277`) — Multi-Agent Incident Response Workshop on Vertex AI & Google ADK
 
-An end-to-end hands-on workshop for building, hardening, deliberating, and governing a production **Site Reliability Engineering (SRE) Multi-Agent System** using the **Google Agent Development Kit (`google-adk`)**, **Vertex AI Agent Engine**, **Google Cloud BigQuery**, and **Google Cloud Model Armor**.
+An end-to-end hands-on workshop for building, scaling, optimizing, and governing a production **Site Reliability Engineering (SRE) Multi-Agent System** using the **Google Agent Development Kit (`google-adk`)**, **Vertex AI Agent Engine**, **Google Cloud BigQuery**, and **Google Cloud Model Armor**.
+
+> **Companion Blog Post**: This workshop brings to life the architecture and lifecycle framework from the Google Cloud Blog post **[20 questions for the agentic enterprise](https://cloud.google.com/blog/products/ai-machine-learning/20-questions-for-the-agentic-enterprise)** across four phases: **Build**, **Scale**, **Optimize**, and **Govern**.
 
 ---
 
@@ -50,11 +52,38 @@ flowchart LR
 
 ---
 
+## How the Workshop Maps to ["20 Questions for the Agentic Enterprise"](https://cloud.google.com/blog/products/ai-machine-learning/20-questions-for-the-agentic-enterprise)
+
+| Lifecycle Phase | # | Question from the Blog | How It Is Implemented in This Workshop |
+| :--- | :--- | :--- | :--- |
+| **1. BUILD** | **Q1** | *Where should my developers start?* | Pre-configured workspace in [`prework/`](prework/README.md) with **BigQuery (`sre_workshop`)**, **ADK `BigQueryToolset`**, and **`SKILL.md`** runbooks. |
+| **1. BUILD** | **Q2** | *Who are you building for—humans, or other agents?* | Supports both headless alert triage and an interactive **Split-Screen Human-in-the-Loop (HITL) Incident Command UI** ([`chat_ux.py`](chat_ux.py)). |
+| **1. BUILD** | **Q3** | *Which agent development tool should I use?* | Combines **Google ADK (`google-adk`)** for multi-agent orchestration with **Vertex AI Agent Engine** managed runtimes and code sandboxes. |
+| **1. BUILD** | **Q4** | *Should I build one complex "God Agent" or a multi-agent system?* | **Lab 1** decomposes a monolithic prompt into `sre_triage_coordinator` + 3 domain specialists (`metrics_and_catalog_agent`, `logs_and_memory_agent`, `deploy_and_diff_agent`). |
+| **2. SCALE** | **Q5** | *How do I connect my agent to enterprise truth?* | Connects directly to **Google Cloud BigQuery** (`service_metrics`, `app_logs`, `deployments`, `commit_diffs`) enriched with **Dataplex Knowledge Catalog** Tier-0 SLO context. |
+| **2. SCALE** | **Q6** | *How does my agent collaborate with agents built in other frameworks?* | **Lab 4** uses **A2A (`ReasoningEngine.spec.agentCard`)** and `call_change_mgmt_a2a_agent` to delegate deployment rollbacks to the Release Engineering team's `change_mgmt_a2a_agent`. |
+| **2. SCALE** | **Q7** | *How do I add new capabilities without bloating the context window?* | Uses ADK **`SkillToolset`** (`L1 -> L2` progressive disclosure) to load [`incident-triage-runbook/SKILL.md`](skills/incident-triage-runbook/SKILL.md) and [`governed-rollback-playbook/SKILL.md`](skills/governed-rollback-playbook/SKILL.md) on demand. |
+| **2. SCALE** | **Q8** | *How do I scale my agent runtime reliably without managing infrastructure?* | Deploys the stateful ADK orchestrator to **Vertex AI Agent Engine (`reasoningEngines`)** and the interactive frontend to **Google Cloud Run** ([`cloud_run/`](cloud_run/)). |
+| **2. SCALE** | **Q9** | *How does my agent remember context across sessions?* | Uses **`VertexAiSessionService`** for short-term state and **`VertexAiMemoryBankService`** for long-term postmortem recall (`Incident-1904` & `Incident-2051`). |
+| **3. OPTIMIZE** | **Q10** | *How do I safely let an agent execute untrusted code or calculations?* | **Lab 2** runs isolated statistical correlation (`z = 47.46`, `14.2x` N+1 multiplier) using **`AgentEngineSandboxCodeExecutor`**. |
+| **3. OPTIMIZE** | **Q11** | *How do I enforce guardrails, self-reflection, and avoid "Single-Agent Myopia"?* | **Lab 2** adds ADK `before_model_callback` / `before_tool_callback` guardrails and **Self-Reflection**; **Lab 3** convenes a 3-agent **`ParallelAgent` Council** (`reliability`, `database_performance`, `red_team_devils_advocate`) before rollback. |
+| **3. OPTIMIZE** | **Q12** | *How do I continuously evaluate and observe agent quality in production?* | **Lab 2** instruments **OpenTelemetry** trace spans (`ObservabilityTracker`) and scores outputs with **Vertex AI Gemini LLM-as-a-Judge** ([`evals/evaluate_sre_agent.py`](evals/evaluate_sre_agent.py)). |
+| **3. OPTIMIZE** | **Q13** | *How do I keep token and inference costs from spiraling out of control?* | Model tiering: high-volume log/metric sub-agents use **`gemini-2.5-flash`**, reserving **`gemini-2.5-pro`** for root coordination, reflection, and consensus arbitration. |
+| **4. GOVERN** | **Q14** | *How do I establish verifiable Agent Identity and access boundaries?* | **Lab 4** provisions **Vertex AI First-Class Agent Identity (`identityType: AGENT_IDENTITY`)** (`principal://agents.global.org-...`) with least-privilege GCP IAM bindings and caller role checks. |
+| **4. GOVERN** | **Q15** | *How do I prevent "Shadow AI" and manage agent, skill, and tool sprawl?* | **Lab 4** inventories all 6 agents, 6 MCP/A2A tools, and version-pinned skills in **`AgentGatewayEnforcer`** and **`EnterpriseSkillRegistry`**. |
+| **4. GOVERN** | **Q16** | *How do I enforce both deterministic IAM and semantic policies on agent actions?* | Enforces [`policies/semantic_policy.yaml`](policies/semantic_policy.yaml) (`SGP-001` requiring 3-part evidence + `3/3` Council consensus; `SGP-002` protecting the `auth` red herring). |
+| **4. GOVERN** | **Q17** | *How do I govern and route traffic between agents, tools, and models?* | Routes tool and A2A rollback invocations through **`AgentGatewayEnforcer`** before any state-changing action executes. |
+| **4. GOVERN** | **Q18** | *How do I defend against prompt injection and sensitive data leaks?* | Calls **Google Cloud Model Armor (`sre-guardian-armor-policy`)** (`sanitizeUserPrompt` + [`ModelArmorInspector`](provided.py)) to block 60 log prompt injections and redact 180 PII tokens/emails. |
+| **4. GOVERN** | **Q19** | *How do I detect and stop a compromised or rogue agent in real time?* | Emits structured `HIGH` and `MEDIUM` severity security audit findings whenever a blocked `auth` rollback or unauthorized caller attempt is intercepted. |
+| **4. GOVERN** | **Q20** | *How do I operationalize testing, evaluation, and deployment for agents?* | Automated hermetic test suite ([`agent_complete_test.py`](agent_complete_test.py)), 4-pillar evaluation rubric ([`evals/evaluate_sre_agent.py`](evals/evaluate_sre_agent.py)), and one-command deployment ([`cloud_run/deploy.sh`](cloud_run/deploy.sh)). |
+
+---
+
 ## Repository Structure
 
 ```text
 .
-├── README.md                                  # Workshop guide & quickstart
+├── README.md                                  # Workshop guide & 20-Questions mapping
 ├── ARCHITECTURE.md                            # System & sequence diagrams (Mermaid)
 ├── requirements.txt                           # Python dependencies
 ├── .env.example                               # Environment variable template
@@ -109,13 +138,13 @@ flowchart LR
 
 Each stage has a **starter file (`agent.py`)** with guided `TODO`s and a **complete reference solution (`agent_complete.py`)**:
 
-| Stage | Directory | Core Vertex AI, ADK & GCP Capabilities | Starter / Solution |
+| Stage | Directory | Core Vertex AI, ADK & GCP Capabilities (`20 Questions`) | Starter / Solution |
 | :--- | :--- | :--- | :--- |
-| **0. Prework** | [`prework/`](prework/README.md) | Seeds 4 **Cloud BigQuery** tables (`service_metrics`, `app_logs`, `deployments`, `commit_diffs`), provisions/discovers a **Vertex AI Agent Engine** with First-Class **`identityType: AGENT_IDENTITY`**, and seeds **`VertexAiMemoryBankService`** (`Incident-1904` & `Incident-2051`). | [`seed_bigquery_and_memory.py`](prework/seed_bigquery_and_memory.py) |
-| **1. Lab 1** | [`lab1_triage_agent/`](lab1_triage_agent/README.md) | **Multi-Agent Incident Triage**: Root `sre_triage_coordinator` (`gemini-2.5-pro`) orchestrating 3 specialist `LlmAgent`s (`metrics_and_catalog_agent`, `logs_and_memory_agent`, `deploy_and_diff_agent`) using **ADK `BigQueryToolset`**, **`SkillToolset`**, and **`VertexAiMemoryBankService`**. | [`agent.py`](lab1_triage_agent/agent.py) / [`agent_complete.py`](lab1_triage_agent/agent_complete.py) |
-| **2. Lab 2** | [`lab2_guardrails_reflection_sandbox/`](lab2_guardrails_reflection_sandbox/README.md) | **Guardrails, Sandbox, Self-Reflection & LLM Judge**: Statistical verification (`z = 47.46`, `14.2x` N+1 multiplier) via **`AgentEngineSandboxCodeExecutor`**, prompt-injection & PII filtering via **Google Cloud Model Armor** (`before_model_callback` / `before_tool_callback`), **Self-Reflection**, **Vertex AI GenAI LLM-as-a-Judge**, and **OpenTelemetry** spans. | [`agent.py`](lab2_guardrails_reflection_sandbox/agent.py) / [`agent_complete.py`](lab2_guardrails_reflection_sandbox/agent_complete.py) |
-| **3. Lab 3** | [`lab3_council_agent/`](lab3_council_agent/README.md) | **Parallel Council of Sub-Agents**: Eliminates single-agent myopia using an ADK **`ParallelAgent`** (`reliability_councilor`, `database_performance_councilor`, `red_team_devils_advocate_councilor`) followed by a **`SequentialAgent` Consensus Arbiter** (`3/3` unanimous vote for `checkout@a3f9c21`). | [`agent.py`](lab3_council_agent/agent.py) / [`agent_complete.py`](lab3_council_agent/agent_complete.py) |
-| **4. Lab 4** | [`lab4_governance_and_a2a/`](lab4_governance_and_a2a/README.md) | **Agent Identity, Skill Registry & Cross-Agent A2A Rollback**: Verifies Vertex AI First-Class **`AGENT_IDENTITY`**, registers skills in **`EnterpriseSkillRegistry`**, enforces caller authorization (`incident_commander` vs. `junior_oncall`), executes the rollback via **`change_mgmt_a2a_agent`**, and writes the **`Incident-2277`** postmortem back to **Vertex AI Memory Bank**. | [`agent.py`](lab4_governance_and_a2a/agent.py) / [`agent_complete.py`](lab4_governance_and_a2a/agent_complete.py) |
+| **0. Prework** | [`prework/`](prework/README.md) | Seeds 4 **Cloud BigQuery** tables (`service_metrics`, `app_logs`, `deployments`, `commit_diffs`), provisions/discovers a **Vertex AI Agent Engine** with First-Class **`identityType: AGENT_IDENTITY`**, and seeds **`VertexAiMemoryBankService`** (`Incident-1904` & `Incident-2051`). *(Q1, Q5, Q8, Q9)* | [`seed_bigquery_and_memory.py`](prework/seed_bigquery_and_memory.py) |
+| **1. Lab 1** | [`lab1_triage_agent/`](lab1_triage_agent/README.md) | **Multi-Agent Incident Triage**: Root `sre_triage_coordinator` (`gemini-2.5-pro`) orchestrating 3 specialist `LlmAgent`s (`metrics_and_catalog_agent`, `logs_and_memory_agent`, `deploy_and_diff_agent`) using **ADK `BigQueryToolset`**, **`SkillToolset`**, and **`VertexAiMemoryBankService`**. *(Q3, Q4, Q5, Q7, Q9, Q13)* | [`agent.py`](lab1_triage_agent/agent.py) / [`agent_complete.py`](lab1_triage_agent/agent_complete.py) |
+| **2. Lab 2** | [`lab2_guardrails_reflection_sandbox/`](lab2_guardrails_reflection_sandbox/README.md) | **Guardrails, Sandbox, Self-Reflection & LLM Judge**: Statistical verification (`z = 47.46`, `14.2x` N+1 multiplier) via **`AgentEngineSandboxCodeExecutor`**, prompt-injection & PII filtering via **Google Cloud Model Armor** (`before_model_callback` / `before_tool_callback`), **Self-Reflection**, **Vertex AI GenAI LLM-as-a-Judge**, and **OpenTelemetry** spans. *(Q10, Q11, Q12, Q18)* | [`agent.py`](lab2_guardrails_reflection_sandbox/agent.py) / [`agent_complete.py`](lab2_guardrails_reflection_sandbox/agent_complete.py) |
+| **3. Lab 3** | [`lab3_council_agent/`](lab3_council_agent/README.md) | **Parallel Council of Sub-Agents**: Eliminates single-agent myopia using an ADK **`ParallelAgent`** (`reliability_councilor`, `database_performance_councilor`, `red_team_devils_advocate_councilor`) followed by a **`SequentialAgent` Consensus Arbiter** (`3/3` unanimous vote for `checkout@a3f9c21`). *(Q11, Q13)* | [`agent.py`](lab3_council_agent/agent.py) / [`agent_complete.py`](lab3_council_agent/agent_complete.py) |
+| **4. Lab 4** | [`lab4_governance_and_a2a/`](lab4_governance_and_a2a/README.md) | **Agent Identity, Skill Registry & Cross-Agent A2A Rollback**: Verifies Vertex AI First-Class **`AGENT_IDENTITY`**, registers skills in **`EnterpriseSkillRegistry`**, enforces caller authorization (`incident_commander` vs. `junior_oncall`), executes the rollback via **`change_mgmt_a2a_agent`**, and writes the **`Incident-2277`** postmortem back to **Vertex AI Memory Bank**. *(Q6, Q14, Q15, Q16, Q17, Q19, Q20)* | [`agent.py`](lab4_governance_and_a2a/agent.py) / [`agent_complete.py`](lab4_governance_and_a2a/agent_complete.py) |
 
 ---
 
