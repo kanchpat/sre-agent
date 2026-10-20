@@ -13,6 +13,7 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY chat_ux.py /app/chat_ux.py
+COPY overview.html /app/overview.html
 COPY server.py /app/server.py
 
 EXPOSE 8080

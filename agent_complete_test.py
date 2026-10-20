@@ -178,7 +178,19 @@ class SreAgentWorkshopTest(absltest.TestCase):
         ic_snapshot=snapshot, jr_snapshot=snapshot
     )
     self.assertIn("SRE Guardian (Incident-2277)", html_ux)
-    self.assertIn("PARALLEL_COUNCIL", html_ux)
+    self.assertIn("VERTEX_GENAI_EVAL", html_ux)
+    self.assertIn("3. Lab 3: Eval", app.chat_ux.CHAT_UX_HTML)
+    self.assertIn(
+        "https://github.com/kanchpat/sre-agent/blob/main/",
+        app.chat_ux.CHAT_UX_HTML,
+    )
+    self.assertIn("code_snippet", app.chat_ux.CHAT_UX_HTML)
+    eval_turn = app.chat_ux.handle_chat_turn(
+        lab_id="lab3",
+        user_message="Run the 5-pillar Gen AI Evaluation rubric",
+    )
+    self.assertEqual(eval_turn["eval_scorecard"]["passed_count"], 5)
+    self.assertEqual(eval_turn["eval_scorecard"]["overall_score"], 1.0)
 
 
 if __name__ == "__main__":
