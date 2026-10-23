@@ -187,6 +187,13 @@ class SreAgentWorkshopTest(absltest.TestCase):
     self.assertIn("code_snippet", app.chat_ux.CHAT_UX_HTML)
     self.assertIn("tpl-incident-1904-diagram", app.chat_ux.CHAT_UX_HTML)
     self.assertIn("Incident-1904 → 2277 Diagram", app.chat_ux.CHAT_UX_HTML)
+    self.assertIn(
+        'id="console-pane" aria-label="Step-by-Step Trace and Links" hidden',
+        app.chat_ux.CHAT_UX_HTML,
+    )
+    self.assertIn('id="btn-open-console"', app.chat_ux.CHAT_UX_HTML)
+    self.assertIn("msg-expand-icon-btn", app.chat_ux.CHAT_UX_HTML)
+    self.assertNotIn("setConsoleOpen(true)", app.chat_ux.CHAT_UX_HTML)
     lab1_turn = app.chat_ux.handle_chat_turn(
         lab_id="lab1",
         user_message="how is incident - 1904 connected with inccident-2277",

@@ -1464,7 +1464,8 @@ CHAT_UX_HTML = """<!DOCTYPE html>
     main.workspace {
       flex: 1;
       display: flex;
-      align-items: flex-start;
+      justify-content: center;
+      align-items: stretch;
       gap: 16px;
       padding: 16px 20px;
       min-height: 0;
@@ -1473,6 +1474,8 @@ CHAT_UX_HTML = """<!DOCTYPE html>
 
     section.chat-pane {
       flex: 1;
+      max-width: 1080px;
+      width: 100%;
       height: 100%;
       display: flex;
       flex-direction: column;
@@ -1482,6 +1485,10 @@ CHAT_UX_HTML = """<!DOCTYPE html>
       min-height: 0;
       overflow: hidden;
       box-shadow: 0 2px 8px rgba(28, 27, 24, 0.04);
+    }
+
+    main.workspace.drawer-open section.chat-pane {
+      max-width: none;
     }
 
     .action-bar {
@@ -1529,6 +1536,42 @@ CHAT_UX_HTML = """<!DOCTYPE html>
       cursor: wait;
     }
 
+    .main-expand-icon-btn {
+      position: relative;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg-panel);
+      color: var(--ink-primary);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+
+    .main-expand-icon-btn:hover,
+    .main-expand-icon-btn.active {
+      background: var(--accent-blue-bg);
+      color: var(--accent-blue);
+      border-color: var(--accent-blue);
+    }
+
+    .main-expand-icon-btn.has-trace::after {
+      content: '';
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+    }
+
     .chat-messages {
       flex: 1;
       overflow-y: auto;
@@ -1564,10 +1607,33 @@ CHAT_UX_HTML = """<!DOCTYPE html>
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
       margin-bottom: 6px;
       font-family: var(--font-mono);
       font-size: 0.72rem;
       color: var(--ink-muted);
+    }
+
+    .msg-expand-icon-btn {
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg-parchment);
+      color: var(--ink-secondary);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .msg-expand-icon-btn:hover {
+      background: var(--accent-blue-bg);
+      color: var(--accent-blue);
+      border-color: var(--accent-blue);
     }
 
     details.dropdown-box {
@@ -1613,9 +1679,10 @@ CHAT_UX_HTML = """<!DOCTYPE html>
       background: var(--bg-panel);
     }
 
-    /* Compact-by-default Right Trace & GCP Console Card */
+    /* Hidden-by-default Right Trace & GCP/SQL Drawer (only opens via main expand icon) */
     section.console-pane {
-      width: 340px;
+      width: 560px;
+      height: 100%;
       max-height: calc(100vh - 92px);
       display: flex;
       flex-direction: column;
@@ -1623,22 +1690,26 @@ CHAT_UX_HTML = """<!DOCTYPE html>
       border: 1px solid var(--border-soft);
       border-radius: 10px;
       box-shadow: 0 2px 10px rgba(28, 27, 24, 0.06);
-      transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1);
       flex-shrink: 0;
       overflow: hidden;
     }
 
-    section.console-pane.expanded {
-      width: 580px;
-      height: 100%;
+    section.console-pane[hidden] {
+      display: none !important;
     }
 
-    section.console-pane.minimized {
-      width: 230px;
-    }
-
-    section.console-pane.minimized .console-body {
-      display: none;
+    @media (max-width: 1024px) {
+      main.workspace.drawer-open {
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      main.workspace.drawer-open section.chat-pane {
+        min-height: 48vh;
+      }
+      section.console-pane {
+        width: 100%;
+        max-height: 52vh;
+      }
     }
 
     .console-tabs {
@@ -1686,7 +1757,7 @@ CHAT_UX_HTML = """<!DOCTYPE html>
 
     .console-toggle-btn {
       font-family: var(--font-mono);
-      font-size: 0.69rem;
+      font-size: 0.74rem;
       font-weight: 700;
       padding: 4px 8px;
       border-radius: 4px;
@@ -2045,12 +2116,13 @@ CHAT_UX_HTML = """<!DOCTYPE html>
     </div>
   </header>
 
-  <main class="workspace">
+  <main class="workspace" id="workspace">
     <section class="chat-pane" aria-label="Guided Lab Actions">
       <div class="action-bar">
         <div class="action-row">
           <select id="prompt-select" class="prompt-select" aria-label="Select a Lab Action"></select>
           <button type="button" class="run-btn" id="btn-run-selected">▶ Run Action</button>
+          <button type="button" class="main-expand-icon-btn" id="btn-open-console" title="Expand Trace &amp; GCP/SQL Panel" aria-label="Expand Trace and GCP SQL Panel" aria-expanded="false">⤢</button>
         </div>
         <details class="custom-input-details">
           <summary>Or type a custom question / prompt injection...</summary>
@@ -2069,7 +2141,7 @@ CHAT_UX_HTML = """<!DOCTYPE html>
       <div class="chat-messages" id="chat-messages"></div>
     </section>
 
-    <section class="console-pane" id="console-pane" aria-label="Step-by-Step Trace and Links">
+    <section class="console-pane" id="console-pane" aria-label="Step-by-Step Trace and Links" hidden>
       <div class="console-tabs">
         <div class="console-tab-group">
           <button type="button" class="console-tab active" data-tab="trace" id="tab-btn-trace">
@@ -2080,8 +2152,8 @@ CHAT_UX_HTML = """<!DOCTYPE html>
           </button>
         </div>
         <div class="console-size-controls">
-          <button type="button" class="console-toggle-btn" id="btn-console-expand" title="Expand or shrink trace panel">
-            ⤢ Expand
+          <button type="button" class="console-toggle-btn" id="btn-console-close" title="Close Trace &amp; GCP/SQL panel" aria-label="Close panel">
+            ✕
           </button>
         </div>
       </div>
@@ -2486,7 +2558,7 @@ CHAT_UX_HTML = """<!DOCTYPE html>
 
       let currentLab = 'lab1';
       let currentConsoleTab = 'trace';
-      let consoleExpanded = false;
+      let consoleOpen = false;
       let latestTurnData = null;
       const chatHistoryByLab = {
         prework: [],
@@ -2496,13 +2568,15 @@ CHAT_UX_HTML = """<!DOCTYPE html>
         lab4: []
       };
 
+      const workspaceEl = document.getElementById('workspace');
       const chatMessagesEl = document.getElementById('chat-messages');
       const promptSelectEl = document.getElementById('prompt-select');
       const labStepSelectEl = document.getElementById('lab-step-select');
       const labStepBadgeEl = document.getElementById('lab-step-badge');
       const consolePaneEl = document.getElementById('console-pane');
       const consoleBodyEl = document.getElementById('console-body');
-      const consoleExpandBtn = document.getElementById('btn-console-expand');
+      const openConsoleBtn = document.getElementById('btn-open-console');
+      const closeConsoleBtn = document.getElementById('btn-console-close');
       const tabBtnTrace = document.getElementById('tab-btn-trace');
       const chatForm = document.getElementById('chat-form');
       const chatInput = document.getElementById('chat-input');
@@ -2575,20 +2649,62 @@ CHAT_UX_HTML = """<!DOCTYPE html>
         return outer;
       }
 
-      function setConsoleExpanded(expanded) {
-        consoleExpanded = expanded;
-        if (consoleExpanded) {
-          consolePaneEl.classList.add('expanded');
-          consoleExpandBtn.textContent = '⤡ Compact';
-        } else {
-          consolePaneEl.classList.remove('expanded');
-          consoleExpandBtn.textContent = '⤢ Expand';
+      function updateExpandButtonsUI() {
+        const events = latestTurnData ? (latestTurnData.live_events || []) : [];
+        if (openConsoleBtn) {
+          openConsoleBtn.textContent = consoleOpen ? '⤡' : '⤢';
+          openConsoleBtn.classList.toggle('active', consoleOpen);
+          openConsoleBtn.setAttribute('aria-expanded', consoleOpen ? 'true' : 'false');
+          openConsoleBtn.title = consoleOpen
+            ? 'Hide Trace & GCP/SQL Panel'
+            : 'Expand Trace & GCP/SQL Panel';
+          openConsoleBtn.classList.toggle('has-trace', events.length > 0 && !consoleOpen);
         }
+        document.querySelectorAll('.msg-expand-icon-btn').forEach(function(btn) {
+          btn.textContent = consoleOpen ? '⤡' : '⤢';
+          btn.title = consoleOpen
+            ? 'Hide Trace & GCP/SQL Panel'
+            : 'Expand Trace & GCP/SQL Panel';
+        });
       }
 
-      consoleExpandBtn.addEventListener('click', function() {
-        setConsoleExpanded(!consoleExpanded);
-      });
+      function setConsoleOpen(open) {
+        consoleOpen = Boolean(open);
+        if (consolePaneEl) {
+          consolePaneEl.hidden = !consoleOpen;
+        }
+        if (workspaceEl) {
+          workspaceEl.classList.toggle('drawer-open', consoleOpen);
+        }
+        updateExpandButtonsUI();
+      }
+
+      if (openConsoleBtn) {
+        openConsoleBtn.addEventListener('click', function() {
+          setConsoleOpen(!consoleOpen);
+        });
+      }
+
+      if (closeConsoleBtn) {
+        closeConsoleBtn.addEventListener('click', function() {
+          setConsoleOpen(false);
+        });
+      }
+
+      function createMsgExpandIconBtn() {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'msg-expand-icon-btn';
+        btn.textContent = consoleOpen ? '⤡' : '⤢';
+        btn.title = consoleOpen
+          ? 'Hide Trace & GCP/SQL Panel'
+          : 'Expand Trace & GCP/SQL Panel';
+        btn.setAttribute('aria-label', 'Toggle Trace and GCP SQL Panel');
+        btn.addEventListener('click', function() {
+          setConsoleOpen(!consoleOpen);
+        });
+        return btn;
+      }
 
       quickLinksSelect.addEventListener('change', function() {
         if (quickLinksSelect.value) {
@@ -2654,6 +2770,13 @@ CHAT_UX_HTML = """<!DOCTYPE html>
         if (history.length === 0) {
           const welcome = document.createElement('div');
           welcome.className = 'msg assistant';
+          const welcomeHdr = document.createElement('div');
+          welcomeHdr.className = 'msg-header';
+          const welcomeMeta = document.createElement('span');
+          welcomeMeta.textContent = cfg.goal;
+          welcomeHdr.appendChild(welcomeMeta);
+          welcomeHdr.appendChild(createMsgExpandIconBtn());
+          welcome.appendChild(welcomeHdr);
           welcome.appendChild(formatMarkdownLite(cfg.intro));
           chatMessagesEl.appendChild(welcome);
         } else {
@@ -2665,9 +2788,12 @@ CHAT_UX_HTML = """<!DOCTYPE html>
             } else {
               const hdr = document.createElement('div');
               hdr.className = 'msg-header';
-              hdr.textContent =
+              const metaSpan = document.createElement('span');
+              metaSpan.textContent =
                 (item.model_backend || 'GCP Agent') +
                 (item.latency_ms ? ' • ' + item.latency_ms + ' ms' : '');
+              hdr.appendChild(metaSpan);
+              hdr.appendChild(createMsgExpandIconBtn());
               bubble.appendChild(hdr);
               bubble.appendChild(formatMarkdownLite(item.text));
 
@@ -2699,12 +2825,13 @@ CHAT_UX_HTML = """<!DOCTYPE html>
         if (tabBtnTrace) {
           tabBtnTrace.textContent = events.length > 0 ? ('Trace (' + events.length + ')') : 'Trace Steps';
         }
+        updateExpandButtonsUI();
 
         if (currentConsoleTab === 'gcp') {
-          cfg.gcpLinks.forEach(function(cp) {
+          cfg.gcpLinks.forEach(function(cp, idx) {
             const det = document.createElement('details');
             det.className = 'step-dropdown';
-            det.open = consoleExpanded;
+            det.open = (idx === 0);
 
             const sum = document.createElement('summary');
             const titleSpan = document.createElement('span');
@@ -2715,12 +2842,6 @@ CHAT_UX_HTML = """<!DOCTYPE html>
             sum.appendChild(titleSpan);
             sum.appendChild(badge);
             det.appendChild(sum);
-
-            det.addEventListener('toggle', function() {
-              if (det.open && !consoleExpanded) {
-                setConsoleExpanded(true);
-              }
-            });
 
             const body = document.createElement('div');
             body.className = 'step-body';
@@ -2811,9 +2932,6 @@ CHAT_UX_HTML = """<!DOCTYPE html>
           const det = document.createElement('details');
           det.className = 'step-dropdown';
           det.open = Boolean(ev.auto_open);
-          if (ev.auto_open && !consoleExpanded) {
-            setConsoleExpanded(true);
-          }
 
           const sum = document.createElement('summary');
           const left = document.createElement('span');
@@ -2824,12 +2942,6 @@ CHAT_UX_HTML = """<!DOCTYPE html>
           sum.appendChild(left);
           sum.appendChild(badge);
           det.appendChild(sum);
-
-          det.addEventListener('toggle', function() {
-            if (det.open && !consoleExpanded) {
-              setConsoleExpanded(true);
-            }
-          });
 
           const body = document.createElement('div');
           body.className = 'step-body';
