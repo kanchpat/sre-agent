@@ -185,6 +185,15 @@ class SreAgentWorkshopTest(absltest.TestCase):
         app.chat_ux.CHAT_UX_HTML,
     )
     self.assertIn("code_snippet", app.chat_ux.CHAT_UX_HTML)
+    self.assertIn("tpl-incident-1904-diagram", app.chat_ux.CHAT_UX_HTML)
+    self.assertIn("Incident-1904 → 2277 Diagram", app.chat_ux.CHAT_UX_HTML)
+    lab1_turn = app.chat_ux.handle_chat_turn(
+        lab_id="lab1",
+        user_message="how is incident - 1904 connected with inccident-2277",
+    )
+    step3 = [e for e in lab1_turn["live_events"] if e["step"] == 3][0]
+    self.assertTrue(step3.get("has_memory_diagram"))
+    self.assertTrue(step3.get("auto_open"))
     eval_turn = app.chat_ux.handle_chat_turn(
         lab_id="lab3",
         user_message="Run the 5-pillar Gen AI Evaluation rubric",

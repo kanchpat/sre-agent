@@ -482,6 +482,7 @@ def _run_prework_turn(user_message: str, start_ms: float) -> dict[str, Any]:
               ')\n'
               'mem_bank.seed_historical_postmortems()  # Incident-1904 & Incident-2051'
           ),
+          'has_memory_diagram': True,
           'payload': {'memories': live_memories},
       },
   ]
@@ -582,6 +583,7 @@ def _run_lab1_turn(
   ]
 
   live_memories = _fetch_real_agent_engine_memories()
+  focus_memory = ('memory' in msg_lower or '1904' in msg_lower or '2051' in msg_lower)
 
   events: list[dict[str, Any]] = [
       {
@@ -670,6 +672,8 @@ def _run_lab1_turn(
           'link_label': 'Open Memory Bank ↗',
           'github_url': 'https://github.com/kanchpat/sre-agent/blob/main/lab1_triage_agent/agent.py#L87-L102',
           'github_label': 'View Code on GitHub (lab1_triage_agent/agent.py) ↗',
+          'github_url_2': 'https://github.com/kanchpat/sre-agent/blob/main/data/past_postmortems.json#L2-L10',
+          'github_label_2': 'View Incident-1904 JSON on GitHub ↗',
           'code_file': 'lab1_triage_agent/agent.py (Lines 87–102 & 180–199)',
           'code_snippet': (
               'def search_long_term_memory_tool(service: str, tool_context: ToolContext):\n'
@@ -683,6 +687,8 @@ def _run_lab1_turn(
               '    tools=[search_long_term_memory_tool, query_app_logs_tool],\n'
               ')'
           ),
+          'has_memory_diagram': True,
+          'auto_open': focus_memory,
           'payload': {'memories': live_memories},
       },
       {
@@ -712,9 +718,7 @@ def _run_lab1_turn(
       },
   ]
 
-  if 'memory' in msg_lower and 'diff' not in msg_lower:
-    events = [events[0], events[2]]
-  elif 'diff' in msg_lower or 'deploy' in msg_lower:
+  if ('diff' in msg_lower or 'deploy' in msg_lower) and not focus_memory:
     events = [events[0], events[3]]
 
   fallback = (
@@ -724,9 +728,23 @@ def _run_lab1_turn(
       '- **Impact**: Exhausted the 100-conn PgBouncer pool (`Incident-2051`) for 28 minutes.'
   )
   reply, model_used = _synthesize_with_vertex_gemini(
-      system_instruction='Summarize Lab 1 triage findings in 3 short bullets.',
+      system_instruction=(
+          'You are the SRE Guardian Lab 1 Triage Coordinator. Answer the '
+          'user\'s question directly in 3 short bullets using the live '
+          'BigQuery metrics, deployments/diff, and Vertex AI Memory Bank '
+          'postmortems (`Incident-1904` filters the benign `14:15 UTC` `auth` '
+          'partner IdP sync red herring so the agent does NOT roll back `auth`, '
+          'while `Incident-2051` links PgBouncer pool exhaustion to `checkout` '
+          'commit `a3f9c21` in `Incident-2277`).'
+      ),
       user_message=user_message,
-      evidence_payload={'metrics': metrics_rows, 'culprit_commit': 'a3f9c21'},
+      evidence_payload={
+          'active_incident': 'Incident-2277',
+          'metrics': metrics_rows,
+          'memory_bank_postmortems': live_memories,
+          'deployments': deploys_rows,
+          'culprit_commit': 'a3f9c21',
+      },
       fallback_markdown=fallback,
   )
   return {
@@ -1597,7 +1615,7 @@ CHAT_UX_HTML = """<!DOCTYPE html>
 
     /* Compact-by-default Right Trace & GCP Console Card */
     section.console-pane {
-      width: 310px;
+      width: 340px;
       max-height: calc(100vh - 92px);
       display: flex;
       flex-direction: column;
@@ -1611,7 +1629,7 @@ CHAT_UX_HTML = """<!DOCTYPE html>
     }
 
     section.console-pane.expanded {
-      width: 560px;
+      width: 580px;
       height: 100%;
     }
 
@@ -1834,6 +1852,152 @@ CHAT_UX_HTML = """<!DOCTYPE html>
       color: var(--ink-muted);
       font-size: 0.79rem;
     }
+
+    details.step-dropdown.trace-diagram-card {
+      border: 1.5px solid #BBD0F7;
+      background: #F4F8FE;
+      margin-bottom: 9px;
+    }
+
+    details.step-dropdown.trace-diagram-card > summary {
+      background: linear-gradient(90deg, #E8F0FE 0%, #F4F8FE 100%);
+      color: var(--accent-blue);
+    }
+
+    .trace-diagram-wrap {
+      position: relative;
+      margin-top: 6px;
+      border: 1px solid var(--border-soft);
+      border-radius: 7px;
+      background: #FCF9F2;
+      padding: 6px;
+      cursor: zoom-in;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .trace-diagram-wrap:hover {
+      border-color: var(--accent-blue);
+      box-shadow: 0 3px 10px rgba(23, 78, 166, 0.12);
+    }
+
+    .trace-diagram-wrap svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+
+    .diagram-zoom-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 2;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--accent-blue);
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--accent-blue);
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .diagram-zoom-btn:hover {
+      background: var(--accent-blue);
+      color: #FFFFFF;
+    }
+
+    .trace-diagram-caption {
+      margin-top: 6px;
+      font-size: 0.74rem;
+      line-height: 1.38;
+      color: var(--ink-secondary);
+    }
+
+    .link-pill.diagram-btn {
+      border: 1px solid #BBD0F7;
+      background: var(--accent-blue-bg);
+      color: var(--accent-blue);
+      cursor: pointer;
+    }
+
+    .link-pill.diagram-btn:hover {
+      background: var(--accent-blue);
+      color: #FFFFFF;
+    }
+
+    .diagram-lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(28, 27, 24, 0.74);
+      backdrop-filter: blur(3px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .diagram-lightbox[hidden] {
+      display: none !important;
+    }
+
+    .diagram-lightbox-card {
+      width: min(1080px, 96vw);
+      max-height: 92vh;
+      overflow-y: auto;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      padding: 16px 20px 18px;
+    }
+
+    .diagram-lightbox-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .diagram-lightbox-title {
+      font-family: var(--font-serif);
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--ink-primary);
+      margin: 0;
+    }
+
+    .diagram-lightbox-close {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg-subtle);
+      color: var(--ink-primary);
+      cursor: pointer;
+    }
+
+    .diagram-lightbox-close:hover {
+      background: var(--ink-primary);
+      color: #FFFFFF;
+    }
+
+    .diagram-lightbox-stage svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border-soft);
+      background: #FCF9F2;
+    }
   </style>
 </head>
 <body>
@@ -1925,6 +2089,229 @@ CHAT_UX_HTML = """<!DOCTYPE html>
       <div class="console-body" id="console-body"></div>
     </section>
   </main>
+
+  <template id="tpl-incident-1904-diagram">
+    <svg viewBox="0 0 880 486" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="How Incident-1904 in Vertex AI Memory Bank connects to Incident-2277">
+      <defs>
+        <marker id="arr-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#B06000" />
+        </marker>
+        <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#174EA6" />
+        </marker>
+        <marker id="arr-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#137333" />
+        </marker>
+      </defs>
+
+      <rect x="0" y="0" width="880" height="486" rx="10" fill="#FCF9F2" />
+
+      <!-- Top Banner -->
+      <rect x="16" y="12" width="848" height="46" rx="8" fill="#1C1B18" />
+      <text x="30" y="32" fill="#FFFFFF" font-family="Outfit, sans-serif" font-size="13.5" font-weight="700">
+        HOW INCIDENT-1904 CONNECTS TO INCIDENT-2277 (LONG-TERM MEMORY TRIAGE)
+      </text>
+      <text x="30" y="49" fill="#E2DBC9" font-family="JetBrains Mono, monospace" font-size="10.2">
+        Past Postmortems (Prework) → Vertex AI Memory Bank Recall (Lab 1) → Blocks Wrong auth Rollback
+      </text>
+
+      <!-- Column Headers -->
+      <text x="22" y="76" fill="#534F46" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700">
+        1. LIVE SIGNALS IN INCIDENT-2277
+      </text>
+      <text x="314" y="76" fill="#174EA6" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700">
+        2. VERTEX AI MEMORY BANK RECALL
+      </text>
+      <text x="634" y="76" fill="#137333" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700">
+        3. LAB 1 TRIAGE VERDICT
+      </text>
+
+      <!-- COLUMN 1 TOP: 14:15 UTC auth Trap -->
+      <rect x="18" y="88" width="246" height="164" rx="9" fill="#FEF7E0" stroke="#D9822B" stroke-width="1.8" />
+      <rect x="28" y="98" width="166" height="20" rx="4" fill="#B06000" />
+      <text x="35" y="112" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="9.8" font-weight="700">
+        EARLIER SPIKE · 14:15 UTC
+      </text>
+      <text x="28" y="137" fill="#1C1B18" font-family="Outfit, sans-serif" font-size="14" font-weight="700">
+        auth-service Blip (Trap)
+      </text>
+      <text x="28" y="156" fill="#534F46" font-family="JetBrains Mono, monospace" font-size="10.4">
+        • WARN: idp.internal timeout
+      </text>
+      <text x="28" y="173" fill="#534F46" font-family="JetBrains Mono, monospace" font-size="10.4">
+        • p99: 640ms (heals in 90s)
+      </text>
+      <rect x="28" y="186" width="226" height="54" rx="6" fill="#FCE8E6" stroke="#C5221F" stroke-width="1.2" />
+      <text x="36" y="204" fill="#C5221F" font-family="Outfit, sans-serif" font-size="10.8" font-weight="700">
+        ❌ Naive LLM Mistake (14:15 &lt; 14:32):
+      </text>
+      <text x="36" y="220" fill="#8C1D18" font-family="JetBrains Mono, monospace" font-size="9.8">
+        Blames auth &amp; rolls back auth!
+      </text>
+      <text x="36" y="233" fill="#8C1D18" font-family="JetBrains Mono, monospace" font-size="9.4">
+        (+60 poisoned logs push same trap)
+      </text>
+
+      <!-- COLUMN 1 BOTTOM: 14:32 UTC checkout Outage -->
+      <rect x="18" y="274" width="246" height="164" rx="9" fill="#FCE8E6" stroke="#C5221F" stroke-width="1.8" />
+      <rect x="28" y="284" width="166" height="20" rx="4" fill="#C5221F" />
+      <text x="35" y="298" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="9.8" font-weight="700">
+        SEV-1 PAGER · 14:32 UTC
+      </text>
+      <text x="28" y="323" fill="#1C1B18" font-family="Outfit, sans-serif" font-size="14" font-weight="700">
+        Incident-2277 (checkout)
+      </text>
+      <text x="28" y="342" fill="#534F46" font-family="JetBrains Mono, monospace" font-size="10.4">
+        • FATAL: PgBouncer Pool 100/100
+      </text>
+      <text x="28" y="359" fill="#534F46" font-family="JetBrains Mono, monospace" font-size="10.4">
+        • p99: 3,100ms (28m breach)
+      </text>
+      <rect x="28" y="374" width="226" height="52" rx="6" fill="#FFFFFF" stroke="#E0B4B2" stroke-width="1.2" />
+      <text x="36" y="393" fill="#C5221F" font-family="Outfit, sans-serif" font-size="10.8" font-weight="700">
+        🔥 Active Tier-0 Production Outage:
+      </text>
+      <text x="36" y="410" fill="#534F46" font-family="JetBrains Mono, monospace" font-size="9.8">
+        HTTP 500s: 42.5% · $18.5k/min loss
+      </text>
+
+      <!-- Arrows Col 1 -> Col 2 -->
+      <line x1="264" y1="168" x2="310" y2="168" stroke="#B06000" stroke-width="2.2" stroke-dasharray="4 3" marker-end="url(#arr-amber)" />
+      <text x="287" y="159" text-anchor="middle" fill="#B06000" font-family="JetBrains Mono, monospace" font-size="8.8" font-weight="700">
+        auth?
+      </text>
+
+      <line x1="264" y1="356" x2="310" y2="356" stroke="#174EA6" stroke-width="2.2" marker-end="url(#arr-blue)" />
+      <text x="287" y="347" text-anchor="middle" fill="#174EA6" font-family="JetBrains Mono, monospace" font-size="8.8" font-weight="700">
+        checkout?
+      </text>
+
+      <!-- COLUMN 2 OUTER: Vertex AI Memory Bank -->
+      <rect x="312" y="84" width="272" height="360" rx="10" fill="#E8F0FE" stroke="#174EA6" stroke-width="1.8" />
+      <text x="448" y="102" text-anchor="middle" fill="#174EA6" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">
+        logs_and_memory_agent (/memories)
+      </text>
+
+      <!-- COLUMN 2 TOP CARD: Incident-1904 -->
+      <rect x="324" y="112" width="248" height="148" rx="8" fill="#FFFFFF" stroke="#B06000" stroke-width="1.6" />
+      <rect x="334" y="121" width="228" height="22" rx="4" fill="#FEF7E0" />
+      <text x="341" y="136" fill="#B06000" font-family="JetBrains Mono, monospace" font-size="10.4" font-weight="700">
+        📜 POSTMORTEM: Incident-1904
+      </text>
+      <text x="334" y="159" fill="#7A7467" font-family="JetBrains Mono, monospace" font-size="9.6">
+        Seeded in Prework · 2026-03-19 (auth)
+      </text>
+      <text x="334" y="178" fill="#1C1B18" font-family="Outfit, sans-serif" font-size="11.4" font-weight="600">
+        Benign hourly :15 partner IdP sync
+      </text>
+      <text x="334" y="195" fill="#534F46" font-family="Outfit, sans-serif" font-size="11">
+        causes 60–90s spike &amp; self-heals &lt;2m.
+      </text>
+      <rect x="334" y="208" width="228" height="40" rx="5" fill="#E6F4EA" stroke="#137333" stroke-width="1.3" />
+      <text x="342" y="225" fill="#137333" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">
+        🛡️ GUARDRAIL LEARNED:
+      </text>
+      <text x="342" y="240" fill="#137333" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">
+        DO NOT ROLL BACK auth-service!
+      </text>
+
+      <!-- COLUMN 2 BOTTOM CARD: Incident-2051 -->
+      <rect x="324" y="276" width="248" height="154" rx="8" fill="#FFFFFF" stroke="#174EA6" stroke-width="1.6" />
+      <rect x="334" y="285" width="228" height="22" rx="4" fill="#E8F0FE" />
+      <text x="341" y="300" fill="#174EA6" font-family="JetBrains Mono, monospace" font-size="10.4" font-weight="700">
+        📜 POSTMORTEM: Incident-2051
+      </text>
+      <text x="334" y="323" fill="#7A7467" font-family="JetBrains Mono, monospace" font-size="9.6">
+        Seeded in Prework · 2026-03-28 (checkout)
+      </text>
+      <text x="334" y="342" fill="#1C1B18" font-family="Outfit, sans-serif" font-size="11.4" font-weight="600">
+        Shared 100-conn PgBouncer DB pool
+      </text>
+      <text x="334" y="359" fill="#534F46" font-family="Outfit, sans-serif" font-size="11">
+        exhausted by unbatched N+1 ORM loops.
+      </text>
+      <rect x="334" y="372" width="228" height="46" rx="5" fill="#E8F0FE" stroke="#174EA6" stroke-width="1.2" />
+      <text x="342" y="390" fill="#174EA6" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">
+        🔍 DIAGNOSTIC POINTER:
+      </text>
+      <text x="342" y="406" fill="#174EA6" font-family="JetBrains Mono, monospace" font-size="9.8">
+        Check recent checkout orders.py diff
+      </text>
+
+      <!-- Arrows Col 2 -> Col 3 -->
+      <line x1="584" y1="184" x2="630" y2="184" stroke="#137333" stroke-width="2.2" marker-end="url(#arr-green)" />
+      <text x="607" y="175" text-anchor="middle" fill="#137333" font-family="JetBrains Mono, monospace" font-size="8.8" font-weight="700">
+        SKIP
+      </text>
+
+      <line x1="584" y1="356" x2="630" y2="356" stroke="#137333" stroke-width="2.4" marker-end="url(#arr-green)" />
+      <text x="607" y="347" text-anchor="middle" fill="#137333" font-family="JetBrains Mono, monospace" font-size="8.8" font-weight="700">
+        PINPOINT
+      </text>
+
+      <!-- COLUMN 3 TOP: Red Herring Filtered -->
+      <rect x="632" y="106" width="230" height="146" rx="9" fill="#F3F6FA" stroke="#64748B" stroke-width="1.6" />
+      <rect x="642" y="116" width="186" height="20" rx="4" fill="#475569" />
+      <text x="649" y="130" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="9.6" font-weight="700">
+        RED HERRING DISMISSED
+      </text>
+      <text x="642" y="157" fill="#137333" font-family="Outfit, sans-serif" font-size="14" font-weight="700">
+        auth Left Untouched ✅
+      </text>
+      <text x="642" y="178" fill="#534F46" font-family="Outfit, sans-serif" font-size="11.2">
+        14:15 UTC spike matched to
+      </text>
+      <text x="642" y="195" fill="#1C1B18" font-family="JetBrains Mono, monospace" font-size="10.8" font-weight="700">
+        Incident-1904 (:15 sync).
+      </text>
+      <text x="642" y="216" fill="#137333" font-family="Outfit, sans-serif" font-size="11.2" font-weight="600">
+        Company-wide login stays UP.
+      </text>
+
+      <!-- COLUMN 3 BOTTOM: True Root Cause Found -->
+      <rect x="632" y="274" width="230" height="166" rx="9" fill="#E6F4EA" stroke="#137333" stroke-width="2.2" />
+      <rect x="642" y="284" width="186" height="20" rx="4" fill="#137333" />
+      <text x="649" y="298" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="9.6" font-weight="700">
+        TRUE ROOT CAUSE FOUND
+      </text>
+      <text x="642" y="324" fill="#1C1B18" font-family="Outfit, sans-serif" font-size="14.5" font-weight="700">
+        checkout @ a3f9c21
+      </text>
+      <text x="642" y="344" fill="#137333" font-family="JetBrains Mono, monospace" font-size="10.2" font-weight="700">
+        Deploy dep-9017 (14:31:18Z)
+      </text>
+      <text x="642" y="363" fill="#1C1B18" font-family="JetBrains Mono, monospace" font-size="10">
+        OrderItem.objects.get()
+      </text>
+      <text x="642" y="379" fill="#534F46" font-family="Outfit, sans-serif" font-size="11">
+        N+1 loop in orders.py
+      </text>
+      <rect x="642" y="392" width="210" height="36" rx="5" fill="#FFFFFF" stroke="#137333" stroke-width="1.1" />
+      <text x="650" y="408" fill="#137333" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700">
+        → Lab 2: Prove z = 47.46
+      </text>
+      <text x="650" y="421" fill="#137333" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700">
+        → Lab 4: Governed A2A Rollback
+      </text>
+
+      <!-- Footer Takeaway -->
+      <text x="440" y="468" text-anchor="middle" fill="#534F46" font-family="Outfit, sans-serif" font-size="11.5" font-weight="600">
+        Key Takeaway: Incident-1904 gives the agent institutional memory so Incident-2277 fixes checkout@a3f9c21 instead of breaking auth.
+      </text>
+    </svg>
+  </template>
+
+  <div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-labelledby="diagram-lightbox-title" hidden>
+    <div class="diagram-lightbox-card">
+      <div class="diagram-lightbox-hdr">
+        <h2 class="diagram-lightbox-title" id="diagram-lightbox-title">
+          How Incident-1904 Connects to Incident-2277 (Vertex AI Memory Bank Triage Flow)
+        </h2>
+        <button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close">✕ Close (Esc)</button>
+      </div>
+      <div class="diagram-lightbox-stage" id="diagram-lightbox-stage"></div>
+    </div>
+  </div>
 
   <script>
     (function() {
@@ -2124,6 +2511,69 @@ CHAT_UX_HTML = """<!DOCTYPE html>
       const nextStepBtn = document.getElementById('btn-next-step');
       const armorSelect = document.getElementById('select-armor');
       const quickLinksSelect = document.getElementById('quick-gcp-links');
+      const diagramTplEl = document.getElementById('tpl-incident-1904-diagram');
+      const diagramLightboxEl = document.getElementById('diagram-lightbox');
+      const diagramLightboxStageEl = document.getElementById('diagram-lightbox-stage');
+      const diagramLightboxCloseBtn = document.getElementById('diagram-lightbox-close');
+
+      function openMemoryDiagramLightbox() {
+        if (!diagramTplEl || !diagramLightboxEl || !diagramLightboxStageEl) return;
+        diagramLightboxStageEl.replaceChildren(diagramTplEl.content.cloneNode(true));
+        diagramLightboxEl.hidden = false;
+      }
+
+      function closeMemoryDiagramLightbox() {
+        if (!diagramLightboxEl) return;
+        diagramLightboxEl.hidden = true;
+      }
+
+      if (diagramLightboxCloseBtn) {
+        diagramLightboxCloseBtn.addEventListener('click', closeMemoryDiagramLightbox);
+      }
+      if (diagramLightboxEl) {
+        diagramLightboxEl.addEventListener('click', function(e) {
+          if (e.target === diagramLightboxEl) {
+            closeMemoryDiagramLightbox();
+          }
+        });
+      }
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && diagramLightboxEl && !diagramLightboxEl.hidden) {
+          closeMemoryDiagramLightbox();
+        }
+      });
+
+      function buildMemoryDiagramWidget() {
+        const outer = document.createElement('div');
+        if (!diagramTplEl) return outer;
+
+        const wrap = document.createElement('div');
+        wrap.className = 'trace-diagram-wrap';
+        wrap.title = 'Click to open larger diagram';
+
+        const zoomBtn = document.createElement('button');
+        zoomBtn.type = 'button';
+        zoomBtn.className = 'diagram-zoom-btn';
+        zoomBtn.textContent = '⤢ Enlarge';
+        zoomBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          openMemoryDiagramLightbox();
+        });
+
+        wrap.appendChild(zoomBtn);
+        wrap.appendChild(diagramTplEl.content.cloneNode(true));
+        wrap.addEventListener('click', function() {
+          openMemoryDiagramLightbox();
+        });
+        outer.appendChild(wrap);
+
+        const cap = document.createElement('div');
+        cap.className = 'trace-diagram-caption';
+        cap.textContent =
+          'Incident-1904 (Memory Bank) filters the 14:15 UTC auth red herring so Lab 1 targets checkout@a3f9c21 in Incident-2277. Click corner "⤢ Enlarge" for full screen.';
+        outer.appendChild(cap);
+        return outer;
+      }
 
       function setConsoleExpanded(expanded) {
         consoleExpanded = expanded;
@@ -2312,10 +2762,32 @@ CHAT_UX_HTML = """<!DOCTYPE html>
           return;
         }
 
+        if (currentLab === 'lab1' || currentLab === 'prework') {
+          const diagDet = document.createElement('details');
+          diagDet.className = 'step-dropdown trace-diagram-card';
+          diagDet.open = (currentLab === 'lab1');
+
+          const diagSum = document.createElement('summary');
+          const diagTitle = document.createElement('span');
+          diagTitle.textContent = '🗺️ Incident-1904 → 2277 Diagram ▾';
+          const diagBadge = document.createElement('span');
+          diagBadge.className = 'badge info';
+          diagBadge.textContent = 'MEMORY FLOW';
+          diagSum.appendChild(diagTitle);
+          diagSum.appendChild(diagBadge);
+          diagDet.appendChild(diagSum);
+
+          const diagBody = document.createElement('div');
+          diagBody.className = 'step-body';
+          diagBody.appendChild(buildMemoryDiagramWidget());
+          diagDet.appendChild(diagBody);
+          consoleBodyEl.appendChild(diagDet);
+        }
+
         if (!latestTurnData) {
           const empty = document.createElement('div');
           empty.className = 'empty-state';
-          empty.textContent = 'Run an action to populate trace steps here. Click "⤢ Expand" when needed.';
+          empty.textContent = 'Run an action to populate live agent trace steps below.';
           consoleBodyEl.appendChild(empty);
           return;
         }
@@ -2324,16 +2796,24 @@ CHAT_UX_HTML = """<!DOCTYPE html>
           const sc = latestTurnData.eval_scorecard;
           const banner = document.createElement('div');
           banner.className = 'eval-banner';
-          banner.innerHTML =
-            '<span>LLM-as-a-Judge</span>' +
-            '<span>' + (sc.overall_score * 100).toFixed(0) + '% (' + sc.passed_count + '/' + sc.total_count + ' PASS)</span>';
+          const sLeft = document.createElement('span');
+          sLeft.textContent = 'LLM-as-a-Judge';
+          const sRight = document.createElement('span');
+          sRight.textContent =
+            (sc.overall_score * 100).toFixed(0) +
+            '% (' + sc.passed_count + '/' + sc.total_count + ' PASS)';
+          banner.appendChild(sLeft);
+          banner.appendChild(sRight);
           consoleBodyEl.appendChild(banner);
         }
 
         events.forEach(function(ev) {
           const det = document.createElement('details');
           det.className = 'step-dropdown';
-          det.open = false;
+          det.open = Boolean(ev.auto_open);
+          if (ev.auto_open && !consoleExpanded) {
+            setConsoleExpanded(true);
+          }
 
           const sum = document.createElement('summary');
           const left = document.createElement('span');
@@ -2357,6 +2837,17 @@ CHAT_UX_HTML = """<!DOCTYPE html>
           const sumDiv = document.createElement('div');
           sumDiv.textContent = ev.summary;
           body.appendChild(sumDiv);
+
+          if (ev.has_memory_diagram) {
+            const diagBtn = document.createElement('button');
+            diagBtn.type = 'button';
+            diagBtn.className = 'link-pill diagram-btn';
+            diagBtn.textContent = '🗺️ Enlarge Incident-1904 → 2277 Diagram ⤢';
+            diagBtn.addEventListener('click', function() {
+              openMemoryDiagramLightbox();
+            });
+            body.appendChild(diagBtn);
+          }
 
           if (ev.link_url) {
             const a = document.createElement('a');
@@ -2386,6 +2877,10 @@ CHAT_UX_HTML = """<!DOCTYPE html>
             gh2.rel = 'noopener noreferrer';
             gh2.textContent = ev.github_label_2 || 'View on GitHub ↗';
             body.appendChild(gh2);
+          }
+
+          if (ev.has_memory_diagram) {
+            body.appendChild(buildMemoryDiagramWidget());
           }
 
           if (ev.code_snippet) {
