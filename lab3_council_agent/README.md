@@ -2,7 +2,7 @@
 
 Evaluates the SRE Guardian agent's root cause accuracy, tool trajectory efficiency, red-herring avoidance, evidence rigor, and prompt-injection safety against the golden **`Incident-2277`** benchmark (`5/5 PASS`, score `1.00`).
 
-- **Previous**: [← 2. Lab 2: Guardrails & Sandbox](../lab2_guardrails_reflection_sandbox/README.md) · **Next**: [4. Lab 4: Agent Identity & A2A →](../lab4_governance_and_a2a/README.md)
+- **Previous**: [← 2. Lab 2: Guardrails (Model Armor)](../lab2_guardrails_reflection_sandbox/README.md) · **Next**: [4. Lab 4: Agent Identity & A2A →](../lab4_governance_and_a2a/README.md)
 - **Code**: [`../evals/evaluate_sre_agent.py`](../evals/evaluate_sre_agent.py) (5-Pillar Eval Runner) · [`agent_complete.py`](agent_complete.py) (Verification Runner)
 
 ## Quick Run

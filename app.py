@@ -3,7 +3,7 @@
 Supports three execution modes:
   1. Live Interactive Web UX Server (`--serve --port=8765`): Starts a local
      HTTP server at http://localhost:8765 where workshop participants can
-     step through Prework and Labs 1-4 (Triage, Guardrails & Sandbox, Eval,
+     step through Prework and Labs 1-4 (Triage, Guardrails, Eval,
      Agent Identity & A2A) with dropdowns and direct GCP Console links.
   2. Standalone HTML Export (`--export_html=/tmp/sre_guardian_ux.html`):
      Generates a self-contained HTML walkthrough.
@@ -151,25 +151,10 @@ def _extract_transaction_timeline(
         },
     })
 
-  # Lab 2 Sandbox & Guardrails
+  # Lab 2 Guardrails (Model Armor)
   lab2 = modular_labs.get('lab2_guardrails_reflection_sandbox', {})
-  sbx = lab2.get('sandbox_correlation', {})
   grd = lab2.get('guardrails_report', {})
 
-  txns.append({
-      'step': len(txns) + 1,
-      'stage': 'Lab 2: Sandbox',
-      'category': 'VERTEX_SANDBOX',
-      'highlight_level': 'critical',
-      'actor': 'sandbox_correlation_agent',
-      'target': sbx.get('sandbox_runtime', 'AgentEngineSandboxCodeExecutor'),
-      'summary': (
-          f"Sandbox proved p99 jump from {sbx.get('pre_deploy_mean_p99_ms')}ms "
-          f"to {sbx.get('post_deploy_mean_p99_ms')}ms (z = {sbx.get('z_score')}) "
-          f"and a {sbx.get('n_plus_1_query_multiplier')}x N+1 SQL multiplier."
-      ),
-      'details': sbx,
-  })
   txns.append({
       'step': len(txns) + 1,
       'stage': 'Lab 2: Guardrails',
@@ -509,7 +494,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
           <option value="ALL">All Stages (0 - 4)</option>
           <option value="Prework">0. Prework (BigQuery &amp; Memory)</option>
           <option value="Lab 1">1. Lab 1: Triage</option>
-          <option value="Lab 2">2. Lab 2: Guardrails &amp; Sandbox</option>
+          <option value="Lab 2">2. Lab 2: Guardrails (Model Armor)</option>
           <option value="Lab 3">3. Lab 3: Eval (LLM-as-a-Judge)</option>
           <option value="Lab 4">4. Lab 4: Identity &amp; A2A</option>
         </select>
@@ -528,9 +513,9 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
         <div class="stat-meta">auth Red Herring Skipped</div>
       </div>
       <div class="stat-card">
-        <div class="stat-title">2. Sandbox &amp; Armor</div>
-        <div class="stat-value" id="stat-zscore">z = 47.46</div>
-        <div class="stat-meta" id="stat-armor">60 Injections Blocked</div>
+        <div class="stat-title">2. Model Armor</div>
+        <div class="stat-value" id="stat-armor-blocked">60 Blocked</div>
+        <div class="stat-meta" id="stat-armor">180 PII Redacted</div>
       </div>
       <div class="stat-card">
         <div class="stat-title">3. Agent Eval</div>
@@ -610,10 +595,10 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
         const l4 = mod.lab4_governance_and_a2a;
 
         document.getElementById('stat-bq').textContent = snap.incident_banner.bigquery_dataset;
-        document.getElementById('stat-zscore').textContent = 'z = ' + l2.sandbox_correlation.z_score;
+        document.getElementById('stat-armor-blocked').textContent =
+          l2.guardrails_report.model_armor_injections_blocked + ' Blocked';
         document.getElementById('stat-armor').textContent =
-          l2.guardrails_report.model_armor_injections_blocked + ' Blocked / ' +
-          l2.guardrails_report.model_armor_pii_redacted + ' PII';
+          l2.guardrails_report.model_armor_pii_redacted + ' PII Redacted';
 
         const activeDec = l4.a2a_cross_agent_call.active_caller_decision;
         const oboStatusEl = document.getElementById('stat-obo-status');

@@ -27,13 +27,14 @@ until all three required evidence artifacts are verified.
     `p99_latency_ms`, `error_rate`, and `db_pool_utilization`, and record the
     **exact minute of onset (`YYYY-MM-DDTHH:MM:00Z`)**.
 
-## Step 3: Correlate with `deployments` & `app_logs` in Agent Sandbox (`Q#10`)
+## Step 3: Correlate with `deployments` & `app_logs` (`Q#5, Q#18`)
 
 -   Query `sre_workshop.deployments` for any deployment that occurred within **5
     minutes prior** to the anomaly onset timestamp.
--   Use the **Code Execution Agent (Agent Sandbox)** to correlate log error
-    signatures in `sre_workshop.app_logs` (e.g., `PoolTimeout`, per-request SQL
-    query counts) before vs. after the suspect deployment timestamp.
+-   Correlate sanitized error signatures in `sre_workshop.app_logs` (e.g.,
+    `PgBouncer PoolTimeout`, per-request SQL query counts after **Model Armor**
+    removes indirect prompt injections and customer PII) before vs. after the
+    suspect deployment timestamp.
 
 ## Step 4: Inspect Code Diffs & Verify the 3-Part Evidence Rubric (`Q#11, Q#12`)
 

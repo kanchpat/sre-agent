@@ -1499,14 +1499,7 @@ class WorkshopAdkLlm(base_llm.BaseLlm):
       if sub_tool_name in available_tools and sub_tool_name not in called_tools:
         planned.append((sub_tool_name, {'request': req}))
 
-    # 6. Lab 2: Sandbox & Guardrails & Self-Reflection / Judge tools
-    if (
-        'run_sandbox_correlation_tool' in available_tools
-        and 'run_sandbox_correlation_tool' not in called_tools
-    ):
-      planned.append(
-          ('run_sandbox_correlation_tool', {'target_service': 'checkout'})
-      )
+    # 6. Lab 2: Model Armor Guardrails & Self-Reflection / Judge tools
     if (
         'inspect_logs_with_guardrails_tool' in available_tools
         and 'inspect_logs_with_guardrails_tool' not in called_tools
@@ -1628,15 +1621,9 @@ class WorkshopAdkLlm(base_llm.BaseLlm):
 
     if 'score_root_cause_report_tool' in tool_outputs:
       judge = tool_outputs['score_root_cause_report_tool']
-      sandbox = tool_outputs.get('run_sandbox_correlation_tool', {})
       guard = tool_outputs.get('inspect_logs_with_guardrails_tool', {})
       return (
-          '### Lab 2: Guardrails, Sandbox & Self-Reflection Verification\n'
-          f'- **Sandbox Statistical Correlation**: checkout p99 jump '
-          f"{sandbox.get('pre_deploy_mean_p99_ms', 182)}ms -> "
-          f"{sandbox.get('post_deploy_mean_p99_ms', 2385)}ms "
-          f"(z-score={sandbox.get('z_score', 48.6)}, N+1 multiplier="
-          f"{sandbox.get('n_plus_1_query_multiplier', 14.2)}x)\n"
+          '### Lab 2: Model Armor Guardrails & Self-Reflection Verification\n'
           f'- **Model Armor & Guardrails**: Blocked '
           f"{guard.get('model_armor_injections_blocked', 60)} indirect prompt "
           'injections and redacted'

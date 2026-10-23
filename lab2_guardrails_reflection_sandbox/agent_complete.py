@@ -1,4 +1,4 @@
-"""Lab 2 (Reference Solution): Guardrails, Self-Reflection, LLM Judge, Observability & Vertex AI Sandbox."""
+"""Lab 2 (Reference Solution): Model Armor Guardrails, Self-Reflection, LLM Judge & Observability."""
 
 from __future__ import annotations
 
@@ -15,25 +15,22 @@ if _REPO_ROOT not in sys.path:
 from lab2_guardrails_reflection_sandbox import agent as lab2_starter  # pylint: disable=g-import-not-at-top
 import provided  # pylint: disable=g-import-not-at-top
 
-execute_isolated_sandbox_correlation = (
-    lab2_starter.execute_isolated_sandbox_correlation
-)
 build_lab2_pipeline = lab2_starter.build_lab2_pipeline
 run_lab2_verification = lab2_starter.run_lab2_verification
 
 
 def main() -> None:
+  """CLI entry point for standalone execution."""
   parser = argparse.ArgumentParser(
       description=(
-          'Run Lab 2 Complete Guardrails, Self-Reflection & Vertex AI Sandbox.'
+          'Run Lab 2 Complete Model Armor Guardrails & Self-Reflection.'
       )
   )
   parser.add_argument(
       '--query',
       default=(
-          'Verify Incident-2277 root cause using the Python Sandbox, enforce'
-          ' Model Armor guardrails on app_logs, and run Self-Reflection + LLM'
-          ' Judge.'
+          'Enforce Model Armor guardrails on BigQuery app_logs and user '
+          'prompts, and run Self-Reflection + LLM Judge.'
       ),
       help='Verification query for the Lab 2 pipeline.',
   )

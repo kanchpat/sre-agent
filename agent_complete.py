@@ -7,8 +7,8 @@ Executes the 5 modular workshop stages in individual folders:
     incident triage queries using BigQuery (BYOD), Multiple Agents, Skills
     (`SkillToolset`), MCP (`BigQueryMcpClient`), and Long-Term Memory.
   - `lab2_guardrails_reflection_sandbox/`: Guardrails agent (`before_model` /
-    `before_tool` callbacks + Model Armor), Self-Reflection, LLM-as-a-Judge,
-    OpenTelemetry Observability spans, and isolated Python Agent Sandbox.
+    `before_tool` callbacks + Google Cloud Model Armor), Self-Reflection,
+    LLM-as-a-Judge, and OpenTelemetry Observability spans.
   - `lab3_council_agent/`: ADK `ParallelAgent` Council of Sub-Agents +
     `SequentialAgent` Consensus Arbiter eliminating Single-Agent Myopia.
   - `lab4_governance_and_a2a/`: Agent Registry, `EnterpriseSkillRegistry`
@@ -23,6 +23,7 @@ from collections.abc import Sequence
 import json
 import os
 import pathlib
+import statistics
 import sys
 from typing import Any
 
@@ -89,13 +90,15 @@ def upload_triage_skill() -> dict[str, Any]:
 def create_code_execution_agent(
     skill_metadata: dict[str, Any],
 ) -> dict[str, Any]:
-  """Runs isolated Python statistical correlation via Lab 2 Sandbox helper."""
+  """Computes pre/post-deploy latency statistics over BigQuery metrics."""
   bq_client = provided.BigQueryMcpClient()
-  sandbox_stats = lab2_complete.execute_isolated_sandbox_correlation(
-      bq_client=bq_client, target_service='checkout'
-  )
-  avg_pre = sandbox_stats['pre_deploy_mean_p99_ms']
-  avg_post = sandbox_stats['post_deploy_mean_p99_ms']
+  rows = bq_client.query_service_metrics(service='checkout')
+  pre_deploy = [r['p99_latency_ms'] for r in rows if r['minute_offset'] < 32]
+  post_deploy = [r['p99_latency_ms'] for r in rows if r['minute_offset'] >= 32]
+  avg_pre = round(statistics.mean(pre_deploy), 2)
+  avg_post = round(statistics.mean(post_deploy), 2)
+  pre_stdev = max(statistics.stdev(pre_deploy), 1.0)
+  z_score = round((avg_post - avg_pre) / pre_stdev, 2)
 
   return {
       'agent_resource_name': (
@@ -120,7 +123,7 @@ def create_code_execution_agent(
           'pre_deploy_avg_p99_ms': avg_pre,
           'post_deploy_avg_p99_ms': avg_post,
           'latency_multiplier': round(avg_post / max(1.0, avg_pre), 1),
-          'z_score': sandbox_stats['z_score'],
+          'z_score': z_score,
           'dominant_error': (
               'sqlalchemy.exc.TimeoutError: PgBouncer PoolTimeout '
               '(active=100/100)'

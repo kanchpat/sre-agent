@@ -2,7 +2,7 @@
 
 Triages **`Incident-2277`** by coordinating 3 specialist sub-agents (`metrics_and_catalog_agent`, `logs_and_memory_agent`, `deploy_and_diff_agent`), filtering the `14:15 UTC` `auth` red herring via **Vertex AI Memory Bank (`Incident-1904`)**, and pinpointing **`checkout@a3f9c21`** (`dep-9017`).
 
-- **Previous**: [← 0. Prework](../prework/README.md) · **Next**: [2. Lab 2: Guardrails & Sandbox →](../lab2_guardrails_reflection_sandbox/README.md)
+- **Previous**: [← 0. Prework](../prework/README.md) · **Next**: [2. Lab 2: Guardrails (Model Armor) →](../lab2_guardrails_reflection_sandbox/README.md)
 - **Code**: [`agent.py`](agent.py) (Starter) · [`agent_complete.py`](agent_complete.py) (Solution) · [`incident-triage-runbook/SKILL.md`](../skills/incident-triage-runbook/SKILL.md)
 
 ## Quick Run
