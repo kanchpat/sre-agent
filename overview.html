@@ -538,7 +538,7 @@
   }
 
   .diagram-modal-card {
-    width: min(1240px, 95vw);
+    width: min(1280px, 95vw);
     max-height: 92vh;
     overflow-y: auto;
     background: var(--bg-blueprint);
@@ -554,13 +554,28 @@
     background-size: 22px 22px;
   }
 
+  .diagram-modal-card.question-modal-mode {
+    width: min(1340px, 96vw);
+    background: var(--bg-paper);
+    color: var(--ink-primary);
+    border: 2px solid var(--border-strong);
+    background-image: radial-gradient(rgba(28, 25, 23, 0.04) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+
   .diagram-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
     padding-bottom: 14px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     border-bottom: 1px solid rgba(147, 197, 253, 0.25);
+  }
+
+  .diagram-modal-card.question-modal-mode .diagram-modal-header {
+    border-bottom: 1px solid var(--border-strong);
   }
 
   .diagram-modal-title {
@@ -572,15 +587,19 @@
     text-transform: uppercase;
   }
 
+  .diagram-modal-card.question-modal-mode .diagram-modal-title {
+    color: var(--rust);
+  }
+
   .diagram-modal-close {
     font-family: var(--mono);
     font-size: 12px;
     font-weight: 700;
     color: #FCA5A5;
-    background: rgba(69, 26, 26, 0.75);
+    background: rgba(69, 26, 26, 0.85);
     border: 1px solid #F87171;
     border-radius: 6px;
-    padding: 6px 12px;
+    padding: 6px 13px;
     cursor: pointer;
     transition: all 0.15s ease;
   }
@@ -588,6 +607,205 @@
   .diagram-modal-close:hover {
     background: #EF4444;
     color: #fff;
+  }
+
+  .diagram-modal-card.question-modal-mode .diagram-modal-close {
+    color: #fff;
+    background: var(--rust);
+    border-color: var(--rust);
+  }
+
+  .diagram-modal-card.question-modal-mode .diagram-modal-close:hover {
+    background: #9f351f;
+  }
+
+  /* Expand & Close Action Buttons for Questions and Architecture */
+  .question-expand-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--sage);
+    background: var(--sage-bg);
+    border: 1px solid var(--sage-border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.16s ease;
+  }
+
+  .question-expand-btn:hover {
+    background: var(--sage);
+    color: #fff;
+    border-color: var(--sage);
+    transform: translateY(-1px);
+  }
+
+  .question-close-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--rust);
+    background: var(--rust-bg);
+    border: 1px solid var(--rust-border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.16s ease;
+  }
+
+  .question-close-btn:hover {
+    background: var(--rust);
+    color: #fff;
+    border-color: var(--rust);
+    transform: translateY(-1px);
+  }
+
+  .bp-close-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: #FCA5A5;
+    background: rgba(69, 26, 26, 0.72);
+    border: 1px solid rgba(248, 113, 113, 0.5);
+    border-radius: 6px;
+    padding: 4px 9px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.16s ease;
+  }
+
+  .bp-close-btn:hover {
+    background: #EF4444;
+    color: #fff;
+    border-color: #EF4444;
+  }
+
+  .collapsed-inline-notice {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--border-strong);
+    background: var(--bg-paper);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-secondary);
+  }
+
+  .collapsed-inline-notice.visible {
+    display: flex;
+  }
+
+  .blueprint-panel .collapsed-inline-notice {
+    background: rgba(15, 23, 42, 0.65);
+    border-color: rgba(147, 197, 253, 0.35);
+    color: #CBD5E1;
+  }
+
+  .modal-view-tabs {
+    display: inline-flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .modal-view-tab {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 5px 11px;
+    border-radius: 6px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-card);
+    color: var(--ink-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .modal-view-tab.active {
+    background: var(--sage);
+    color: #fff;
+    border-color: var(--sage);
+  }
+
+  .modal-q-rail {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    gap: 4px;
+    margin-bottom: 18px;
+  }
+
+  @media (max-width: 900px) {
+    .modal-q-rail {
+      grid-template-columns: repeat(10, 1fr);
+    }
+  }
+
+  .modal-question-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    padding: 28px 34px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .modal-question-card .story-q-question {
+    font-size: clamp(26px, 3vw, 35px);
+    margin-bottom: 22px;
+  }
+
+  .modal-question-card .narrative-block {
+    padding: 18px 22px;
+    margin-bottom: 18px;
+  }
+
+  .modal-question-card .narrative-label {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  .modal-question-card .narrative-text {
+    font-size: 17px;
+    line-height: 1.66;
+  }
+
+  .modal-question-card .story-code-snippet {
+    font-size: 14px;
+    padding: 16px 20px;
+  }
+
+  .modal-split-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  @media (max-width: 1024px) {
+    .modal-split-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .modal-question-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-strong);
   }
 
   .diagram-modal-body svg {
@@ -1553,26 +1771,40 @@
       <article class="story-folio" id="story-folio">
         <div class="story-folio-meta">
           <span id="q-persona-badge" class="persona-badge builder">BUILDER · ACT I</span>
-          <span id="q-slide-ref" class="slide-ref-badge">Data Agent Kit</span>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span id="q-slide-ref" class="slide-ref-badge">Data Agent Kit</span>
+            <button id="btn-folio-expand" class="question-expand-btn" onclick="handleQuestionFolioExpand()" title="Expand question for detailed discussion" aria-label="Expand question">⤢ Expand</button>
+            <button id="btn-folio-close" class="question-close-btn" onclick="closeQuestionFolioInline()" title="Close question details inline" aria-label="Close question details">✕ Close</button>
+          </div>
         </div>
 
         <div id="q-num-label" class="story-q-number">Question 01 of 20</div>
         <h3 id="q-title" class="story-q-question">“How do I get started quickly?”</h3>
 
-        <div class="narrative-block wall">
-          <div class="narrative-label">⚡ The 2:00 AM Wall We Hit</div>
-          <p id="q-wall" class="narrative-text"></p>
+        <div id="story-folio-collapsed-notice" class="collapsed-inline-notice">
+          <span>Question details closed. Click <strong>⤢ Expand</strong> to open details or discuss in full screen.</span>
+          <div style="display:flex; gap:8px;">
+            <button class="question-expand-btn" onclick="expandQuestionFolioInline()">⤢ Expand Inline</button>
+            <button class="question-expand-btn" onclick="openQuestionModal(currentQuestionIdx, 'question')">⤢ Fullscreen Detail</button>
+          </div>
         </div>
 
-        <div class="narrative-block pivot">
-          <div class="narrative-label">🧭 The Architectural Pivot</div>
-          <p id="q-pivot" class="narrative-text"></p>
-        </div>
+        <div id="story-folio-details">
+          <div class="narrative-block wall">
+            <div class="narrative-label">⚡ The 2:00 AM Wall We Hit</div>
+            <p id="q-wall" class="narrative-text"></p>
+          </div>
 
-        <div class="narrative-block incident">
-          <div class="narrative-label">🔬 In Incident-2277</div>
-          <p id="q-incident" class="narrative-text"></p>
-          <pre id="q-code" class="story-code-snippet"></pre>
+          <div class="narrative-block pivot">
+            <div class="narrative-label">🧭 The Architectural Pivot</div>
+            <p id="q-pivot" class="narrative-text"></p>
+          </div>
+
+          <div class="narrative-block incident">
+            <div class="narrative-label">🔬 In Incident-2277</div>
+            <p id="q-incident" class="narrative-text"></p>
+            <pre id="q-code" class="story-code-snippet"></pre>
+          </div>
         </div>
 
         <div class="story-nav-footer">
@@ -1583,91 +1815,104 @@
       </article>
 
       <!-- Right: Live Evolving SRE Guardian Architecture Blueprint -->
-      <aside class="blueprint-panel" data-diagram-title="Live Evolving Architecture · SRE Guardian">
-        <button class="diagram-expand-btn" onclick="openDiagramModal(this)" title="Open larger diagram view" aria-label="Expand diagram">⤢ Expand</button>
-        <div class="blueprint-header" style="padding-right: 78px;">
+      <aside id="live-blueprint-panel" class="blueprint-panel" data-diagram-title="Live Evolving Architecture · SRE Guardian">
+        <div class="blueprint-header">
           <span class="blueprint-title">Live Evolving Architecture · SRE Guardian</span>
-          <span id="bp-stage-badge" class="blueprint-delta-badge">State @ Q01</span>
-        </div>
-
-        <div id="bp-delta-summary" class="blueprint-delta-summary">
-          Added: Data Agent Kit (MCP + Skills + IDE Plugins) for zero-plumbing local prototyping.
-        </div>
-
-        <!-- Layer 1: Security & Governance Perimeter (Unlocks Q16-Q19) -->
-        <div id="bp-layer-gov" class="bp-layer locked">
-          <div class="bp-layer-label">
-            <span>Layer 5 · Fleet Governance &amp; Zero-Trust Perimeter</span>
-            <span id="bp-gov-status">Q16–Q19</span>
-          </div>
-          <div class="bp-nodes">
-            <span id="node-registry" class="bp-node inactive">Agent Registry</span>
-            <span id="node-obo" class="bp-node inactive">Agent Identity + OBO Auth</span>
-            <span id="node-iam" class="bp-node inactive">Scoped IAM Policies</span>
-            <span id="node-gateway" class="bp-node inactive">Agent Gateway</span>
-            <span id="node-armor" class="bp-node inactive">Model Armor (Prompt/PII)</span>
-            <span id="node-scc" class="bp-node inactive">Security Command Center</span>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; flex-shrink:0;">
+            <span id="bp-stage-badge" class="blueprint-delta-badge" style="white-space:nowrap;">State @ Q01</span>
+            <button id="btn-bp-expand" class="diagram-expand-btn" style="position:static;" onclick="handleBlueprintExpand()" title="Expand Live Evolving Architecture for detailed discussion" aria-label="Expand diagram">⤢ Expand</button>
+            <button id="btn-bp-close" class="bp-close-btn" onclick="closeBlueprintInline()" title="Close architecture layers inline" aria-label="Close diagram">✕ Close</button>
           </div>
         </div>
 
-        <!-- Layer 2: Trigger & UX Surface (Unlocks Q02) -->
-        <div id="bp-layer-trigger" class="bp-layer">
-          <div class="bp-layer-label">
-            <span>Layer 1 · Entry Triggers &amp; Operator UX</span>
-            <span>Q01–Q03</span>
-          </div>
-          <div class="bp-nodes">
-            <span id="node-kit" class="bp-node newly-added">Data Agent Kit (IDE/CLI)</span>
-            <span id="node-webhook" class="bp-node inactive">Cloud Monitoring Webhook (System→Agent)</span>
-            <span id="node-hitl" class="bp-node inactive">Sidecar HITL Approval UI</span>
-            <span id="node-adk" class="bp-node inactive">Rung 4: Google ADK Runtime</span>
+        <div id="blueprint-collapsed-notice" class="collapsed-inline-notice">
+          <span>Architecture layers closed. Click <strong>⤢ Expand</strong> to open layers or view in full screen.</span>
+          <div style="display:flex; gap:8px;">
+            <button class="diagram-expand-btn" style="position:static;" onclick="expandBlueprintInline()">⤢ Expand Inline</button>
+            <button class="diagram-expand-btn" style="position:static;" onclick="openQuestionModal(currentQuestionIdx, 'architecture')">⤢ Fullscreen</button>
           </div>
         </div>
 
-        <!-- Layer 3: Agent Orchestration Core (Evolves Q04, Q07, Q15) -->
-        <div id="bp-layer-core" class="bp-layer">
-          <div class="bp-layer-label">
-            <span>Layer 2 · Multi-Agent Orchestration Core</span>
-            <span>Q04, Q07, Q15</span>
+        <div id="blueprint-panel-details">
+          <div id="bp-delta-summary" class="blueprint-delta-summary">
+            Added: Data Agent Kit (MCP + Skills + IDE Plugins) for zero-plumbing local prototyping.
           </div>
-          <div class="bp-nodes">
-            <span id="node-monolith" class="bp-node inactive">Monolithic SRE Agent <span class="bp-model-tag">gemini-3.1-pro</span></span>
-            <span id="node-routing" class="bp-node inactive">Routing Agent <span id="routing-model-tag" class="bp-model-tag">gemini-3.1-pro</span></span>
-            <span id="node-investigation" class="bp-node inactive">Investigation Agent <span class="bp-model-tag">gemini-3.1-pro</span></span>
-            <span id="node-policy" class="bp-node inactive">Policy Agent <span class="bp-model-tag">gemini-3.1-pro</span></span>
-            <span id="node-a2a" class="bp-node inactive">Change Mgmt Agent (LangGraph via A2A)</span>
-          </div>
-        </div>
 
-        <!-- Layer 4: Context, Skills, Data & Memory (Unlocks Q05-Q10) -->
-        <div id="bp-layer-data" class="bp-layer locked">
-          <div class="bp-layer-label">
-            <span>Layer 3 · Enterprise Data, Skills &amp; Memory</span>
-            <span>Q05–Q10</span>
+          <!-- Layer 1: Security & Governance Perimeter (Unlocks Q16-Q19) -->
+          <div id="bp-layer-gov" class="bp-layer locked">
+            <div class="bp-layer-label">
+              <span>Layer 5 · Fleet Governance &amp; Zero-Trust Perimeter</span>
+              <span id="bp-gov-status">Q16–Q19</span>
+            </div>
+            <div class="bp-nodes">
+              <span id="node-registry" class="bp-node inactive">Agent Registry</span>
+              <span id="node-obo" class="bp-node inactive">Agent Identity + OBO Auth</span>
+              <span id="node-iam" class="bp-node inactive">Scoped IAM Policies</span>
+              <span id="node-gateway" class="bp-node inactive">Agent Gateway</span>
+              <span id="node-armor" class="bp-node inactive">Model Armor (Prompt/PII)</span>
+              <span id="node-scc" class="bp-node inactive">Security Command Center</span>
+            </div>
           </div>
-          <div class="bp-nodes">
-            <span id="node-mcp" class="bp-node inactive">Managed BigQuery MCP (70k logs)</span>
-            <span id="node-catalog" class="bp-node inactive">Knowledge Catalog (Context Engine)</span>
-            <span id="node-skills" class="bp-node inactive">Progressive Skills (L1/L2/L3 SKILL.md)</span>
-            <span id="node-sessions" class="bp-node inactive">Agent Sessions (365d State)</span>
-            <span id="node-memory" class="bp-node inactive">Memory Bank (Recalls Incident-1904)</span>
-            <span id="node-cloudrun" class="bp-node inactive">Hybrid Runtime (Agent Engine + Cloud Run)</span>
-          </div>
-        </div>
 
-        <!-- Layer 5: Trust, Eval, Sandbox & Verification (Unlocks Q11-Q14, Q20) -->
-        <div id="bp-layer-trust" class="bp-layer locked">
-          <div class="bp-layer-label">
-            <span>Layer 4 · Safety Brakes, Eval &amp; Verification</span>
-            <span>Q11–Q14, Q20</span>
+          <!-- Layer 2: Trigger & UX Surface (Unlocks Q02) -->
+          <div id="bp-layer-trigger" class="bp-layer">
+            <div class="bp-layer-label">
+              <span>Layer 1 · Entry Triggers &amp; Operator UX</span>
+              <span>Q01–Q03</span>
+            </div>
+            <div class="bp-nodes">
+              <span id="node-kit" class="bp-node newly-added">Data Agent Kit (IDE/CLI)</span>
+              <span id="node-webhook" class="bp-node inactive">Cloud Monitoring Webhook (System→Agent)</span>
+              <span id="node-hitl" class="bp-node inactive">Sidecar HITL Approval UI</span>
+              <span id="node-adk" class="bp-node inactive">Rung 4: Google ADK Runtime</span>
+            </div>
           </div>
-          <div class="bp-nodes">
-            <span id="node-guardrails" class="bp-node inactive">Guardrails Agent</span>
-            <span id="node-eval" class="bp-node inactive">Self-Reflection + Vertex GenAI Eval (5/5)</span>
-            <span id="node-otel" class="bp-node inactive">OpenTelemetry GenAI Tracing</span>
-            <span id="node-sandbox" class="bp-node inactive">Code Exec in gVisor Sandbox</span>
-            <span id="node-council" class="bp-node inactive">Independent Council / Validator Agent</span>
-            <span id="node-cli" class="bp-node inactive">Agents CLI (CI/CD Release)</span>
+
+          <!-- Layer 3: Agent Orchestration Core (Evolves Q04, Q07, Q15) -->
+          <div id="bp-layer-core" class="bp-layer">
+            <div class="bp-layer-label">
+              <span>Layer 2 · Multi-Agent Orchestration Core</span>
+              <span>Q04, Q07, Q15</span>
+            </div>
+            <div class="bp-nodes">
+              <span id="node-monolith" class="bp-node inactive">Monolithic SRE Agent <span class="bp-model-tag">gemini-3.1-pro</span></span>
+              <span id="node-routing" class="bp-node inactive">Routing Agent <span id="routing-model-tag" class="bp-model-tag">gemini-3.1-pro</span></span>
+              <span id="node-investigation" class="bp-node inactive">Investigation Agent <span class="bp-model-tag">gemini-3.1-pro</span></span>
+              <span id="node-policy" class="bp-node inactive">Policy Agent <span class="bp-model-tag">gemini-3.1-pro</span></span>
+              <span id="node-a2a" class="bp-node inactive">Change Mgmt Agent (LangGraph via A2A)</span>
+            </div>
+          </div>
+
+          <!-- Layer 4: Context, Skills, Data & Memory (Unlocks Q05-Q10) -->
+          <div id="bp-layer-data" class="bp-layer locked">
+            <div class="bp-layer-label">
+              <span>Layer 3 · Enterprise Data, Skills &amp; Memory</span>
+              <span>Q05–Q10</span>
+            </div>
+            <div class="bp-nodes">
+              <span id="node-mcp" class="bp-node inactive">Managed BigQuery MCP (70k logs)</span>
+              <span id="node-catalog" class="bp-node inactive">Knowledge Catalog (Context Engine)</span>
+              <span id="node-skills" class="bp-node inactive">Progressive Skills (L1/L2/L3 SKILL.md)</span>
+              <span id="node-sessions" class="bp-node inactive">Agent Sessions (365d State)</span>
+              <span id="node-memory" class="bp-node inactive">Memory Bank (Recalls Incident-1904)</span>
+              <span id="node-cloudrun" class="bp-node inactive">Hybrid Runtime (Agent Engine + Cloud Run)</span>
+            </div>
+          </div>
+
+          <!-- Layer 5: Trust, Eval, Sandbox & Verification (Unlocks Q11-Q14, Q20) -->
+          <div id="bp-layer-trust" class="bp-layer locked">
+            <div class="bp-layer-label">
+              <span>Layer 4 · Safety Brakes, Eval &amp; Verification</span>
+              <span>Q11–Q14, Q20</span>
+            </div>
+            <div class="bp-nodes">
+              <span id="node-guardrails" class="bp-node inactive">Guardrails Agent</span>
+              <span id="node-eval" class="bp-node inactive">Self-Reflection + Vertex GenAI Eval (5/5)</span>
+              <span id="node-otel" class="bp-node inactive">OpenTelemetry GenAI Tracing</span>
+              <span id="node-sandbox" class="bp-node inactive">Code Exec in gVisor Sandbox</span>
+              <span id="node-council" class="bp-node inactive">Independent Council / Validator Agent</span>
+              <span id="node-cli" class="bp-node inactive">Agents CLI (CI/CD Release)</span>
+            </div>
           </div>
         </div>
       </aside>
@@ -1906,14 +2151,30 @@ description: >
   </div>
 </footer>
 
-<!-- ───── FULL-SCREEN ENLARGED DIAGRAM MODAL ───── -->
+<!-- ───── FULL-SCREEN ENLARGED DIAGRAM & QUESTION DISCUSSION MODAL ───── -->
 <div id="diagram-modal-overlay" class="diagram-modal-overlay" onclick="if(event.target === this) closeDiagramModal()">
-  <div class="diagram-modal-card">
+  <div id="diagram-modal-card" class="diagram-modal-card">
     <div class="diagram-modal-header">
       <span id="diagram-modal-title" class="diagram-modal-title">Expanded Architecture Diagram</span>
-      <button class="diagram-modal-close" onclick="closeDiagramModal()">✕ Close (ESC)</button>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div id="modal-view-tabs" class="modal-view-tabs" style="display:none;">
+          <button id="modal-tab-question" class="modal-view-tab active" onclick="setModalQuestionTab('question')">📖 Question Detail</button>
+          <button id="modal-tab-split" class="modal-view-tab" onclick="setModalQuestionTab('split')">◫ Split (Question + Architecture)</button>
+          <button id="modal-tab-arch" class="modal-view-tab" onclick="setModalQuestionTab('architecture')">🏗️ Live Architecture</button>
+        </div>
+        <button class="diagram-modal-close" onclick="closeDiagramModal()">✕ Close (ESC)</button>
+      </div>
     </div>
+    <div id="modal-q-rail" class="modal-q-rail" style="display:none;"></div>
     <div id="diagram-modal-body" class="diagram-modal-body"></div>
+    <div id="modal-question-footer" class="modal-question-footer" style="display:none;">
+      <button id="btn-modal-prev-q" class="nav-step-btn" onclick="stepModalQuestion(-1)">← Previous Question</button>
+      <span id="modal-q-progress-text" style="font-family:var(--mono); font-size:12.5px; font-weight:700;">Question 01 of 20</span>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button id="btn-modal-next-q" class="nav-step-btn primary" onclick="stepModalQuestion(1)">Next Question →</button>
+        <button class="diagram-modal-close" onclick="closeDiagramModal()">✕ Close</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2360,26 +2621,206 @@ description: >
   ];
 
   // ═══════════════════════════════════════════════════════════════════
-  // DIAGRAM LIGHTBOX MODAL CONTROLLER (⤢ EXPAND IN CORNER)
+  // DIAGRAM & 20-QUESTIONS FULL-SCREEN DISCUSSION MODAL CONTROLLER
   // ═══════════════════════════════════════════════════════════════════
   let activeModalSourceEl = null;
+  let activeModalQuestionMode = false;
+  let activeModalQuestionTab = 'question';
+
+  function cloneChildrenInto(sourceEl, targetEl) {
+    const nodes = [];
+    Array.from(sourceEl.childNodes).forEach(child => {
+      nodes.push(child.cloneNode(true));
+    });
+    targetEl.replaceChildren(...nodes);
+  }
 
   function openDiagramModal(triggerEl) {
     const container = triggerEl.closest('.blueprint-visual-box, .blueprint-panel');
     if (!container) return;
     activeModalSourceEl = container;
+    activeModalQuestionMode = false;
+
+    const modalCard = document.getElementById('diagram-modal-card');
+    modalCard.classList.remove('question-modal-mode');
+    document.getElementById('modal-view-tabs').style.display = 'none';
+    document.getElementById('modal-q-rail').style.display = 'none';
+    document.getElementById('modal-question-footer').style.display = 'none';
 
     const title = container.getAttribute('data-diagram-title') || 'Architecture Diagram';
     document.getElementById('diagram-modal-title').textContent = title;
-    document.getElementById('diagram-modal-body').innerHTML = container.innerHTML;
+    cloneChildrenInto(container, document.getElementById('diagram-modal-body'));
     document.getElementById('diagram-modal-overlay').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
 
   function refreshDiagramModalIfOpen() {
     const overlay = document.getElementById('diagram-modal-overlay');
-    if (overlay && overlay.classList.contains('open') && activeModalSourceEl) {
-      document.getElementById('diagram-modal-body').innerHTML = activeModalSourceEl.innerHTML;
+    if (!overlay || !overlay.classList.contains('open')) return;
+    if (activeModalQuestionMode) {
+      renderQuestionModalView();
+    } else if (activeModalSourceEl) {
+      cloneChildrenInto(activeModalSourceEl, document.getElementById('diagram-modal-body'));
+    }
+  }
+
+  function buildModalQuestionCardDom(q) {
+    const card = document.createElement('div');
+    card.className = 'modal-question-card';
+
+    const meta = document.createElement('div');
+    meta.className = 'story-folio-meta';
+
+    const badge = document.createElement('span');
+    badge.className = 'persona-badge ' + q.persona;
+    badge.textContent = q.personaLabel;
+
+    const rightMeta = document.createElement('div');
+    rightMeta.style.display = 'flex';
+    rightMeta.style.alignItems = 'center';
+    rightMeta.style.gap = '10px';
+    rightMeta.style.flexWrap = 'wrap';
+
+    const slideRef = document.createElement('span');
+    slideRef.className = 'slide-ref-badge';
+    slideRef.textContent = q.slides;
+
+    const stateBadge = document.createElement('span');
+    stateBadge.className = 'persona-badge builder';
+    stateBadge.textContent = `State @ Q${String(q.num).padStart(2, '0')} · ${q.delta}`;
+
+    rightMeta.append(slideRef, stateBadge);
+    meta.append(badge, rightMeta);
+
+    const numLabel = document.createElement('div');
+    numLabel.className = 'story-q-number';
+    numLabel.textContent = `Question ${String(q.num).padStart(2, '0')} of 20`;
+
+    const titleEl = document.createElement('h3');
+    titleEl.className = 'story-q-question';
+    titleEl.textContent = q.question;
+
+    const makeNarrativeBlock = (kindClass, labelText, bodyText, codeText) => {
+      const block = document.createElement('div');
+      block.className = 'narrative-block ' + kindClass;
+      const lbl = document.createElement('div');
+      lbl.className = 'narrative-label';
+      lbl.textContent = labelText;
+      const p = document.createElement('p');
+      p.className = 'narrative-text';
+      p.textContent = bodyText;
+      block.append(lbl, p);
+      if (codeText) {
+        const pre = document.createElement('pre');
+        pre.className = 'story-code-snippet';
+        pre.textContent = codeText;
+        block.appendChild(pre);
+      }
+      return block;
+    };
+
+    const wallBlock = makeNarrativeBlock('wall', '⚡ The 2:00 AM Wall We Hit', q.wall, null);
+    const pivotBlock = makeNarrativeBlock('pivot', '🧭 The Architectural Pivot', q.pivot, null);
+    const incidentBlock = makeNarrativeBlock('incident', '🔬 In Incident-2277', q.incident, q.code);
+
+    card.append(meta, numLabel, titleEl, wallBlock, pivotBlock, incidentBlock);
+    return card;
+  }
+
+  function buildClonedBlueprintDom() {
+    const bpDetails = document.getElementById('blueprint-panel-details');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'blueprint-panel';
+    wrapper.style.position = 'static';
+    if (bpDetails) {
+      cloneChildrenInto(bpDetails, wrapper);
+    }
+    return wrapper;
+  }
+
+  function renderModalQuestionRail() {
+    const rail = document.getElementById('modal-q-rail');
+    if (!rail) return;
+    const pills = QUESTIONS.map((q, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'q-pill' +
+        (idx === currentQuestionIdx ? ' active' : '') +
+        (visitedQuestions.has(idx) ? ' visited' : '');
+      btn.textContent = 'Q' + String(q.num).padStart(2, '0');
+      btn.title = `Q${q.num}: ${q.question}`;
+      btn.onclick = () => {
+        selectQuestion(idx);
+        renderQuestionModalView();
+      };
+      return btn;
+    });
+    rail.replaceChildren(...pills);
+  }
+
+  function renderQuestionModalView() {
+    const q = QUESTIONS[currentQuestionIdx];
+    const modalCard = document.getElementById('diagram-modal-card');
+    const body = document.getElementById('diagram-modal-body');
+
+    document.getElementById('modal-view-tabs').style.display = 'inline-flex';
+    document.getElementById('modal-q-rail').style.display = 'grid';
+    document.getElementById('modal-question-footer').style.display = 'flex';
+
+    document.getElementById('modal-tab-question').classList.toggle('active', activeModalQuestionTab === 'question');
+    document.getElementById('modal-tab-split').classList.toggle('active', activeModalQuestionTab === 'split');
+    document.getElementById('modal-tab-arch').classList.toggle('active', activeModalQuestionTab === 'architecture');
+
+    const paddedNum = String(q.num).padStart(2, '0');
+    document.getElementById('diagram-modal-title').textContent =
+      `Question ${paddedNum} of 20 · ${q.slides} (${q.personaLabel})`;
+    document.getElementById('modal-q-progress-text').textContent =
+      `Question ${paddedNum} of 20 · ${q.slides}`;
+    document.getElementById('btn-modal-prev-q').disabled = (currentQuestionIdx === 0);
+    document.getElementById('btn-modal-next-q').disabled = (currentQuestionIdx === QUESTIONS.length - 1);
+
+    renderModalQuestionRail();
+
+    if (activeModalQuestionTab === 'architecture') {
+      modalCard.classList.remove('question-modal-mode');
+      const archDom = buildClonedBlueprintDom();
+      archDom.style.border = 'none';
+      archDom.style.padding = '0';
+      archDom.style.boxShadow = 'none';
+      body.replaceChildren(archDom);
+    } else if (activeModalQuestionTab === 'split') {
+      modalCard.classList.add('question-modal-mode');
+      const splitGrid = document.createElement('div');
+      splitGrid.className = 'modal-split-grid';
+      splitGrid.append(buildModalQuestionCardDom(q), buildClonedBlueprintDom());
+      body.replaceChildren(splitGrid);
+    } else {
+      modalCard.classList.add('question-modal-mode');
+      body.replaceChildren(buildModalQuestionCardDom(q));
+    }
+  }
+
+  function openQuestionModal(qIdx, initialTab) {
+    if (typeof qIdx === 'number' && qIdx >= 0 && qIdx < QUESTIONS.length) {
+      selectQuestion(qIdx);
+    }
+    activeModalSourceEl = null;
+    activeModalQuestionMode = true;
+    activeModalQuestionTab = initialTab || 'question';
+    renderQuestionModalView();
+    document.getElementById('diagram-modal-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function setModalQuestionTab(tab) {
+    activeModalQuestionTab = tab;
+    renderQuestionModalView();
+  }
+
+  function stepModalQuestion(delta) {
+    const nextIdx = currentQuestionIdx + delta;
+    if (nextIdx >= 0 && nextIdx < QUESTIONS.length) {
+      selectQuestion(nextIdx);
+      renderQuestionModalView();
     }
   }
 
@@ -2388,6 +2829,7 @@ description: >
     if (overlay) overlay.classList.remove('open');
     document.body.style.overflow = '';
     activeModalSourceEl = null;
+    activeModalQuestionMode = false;
   }
 
   let currentPrologueIdx = 0;
@@ -2967,10 +3409,61 @@ $ agents deploy sre-guardian --env=prod      # Registered, OBO-enforced, Model-A
   let currentActFilter = 'all';
   let questionAutoplayTimer = null;
   const visitedQuestions = new Set([0]);
+  const closedReaderQuestions = new Set();
+  let folioInlineClosed = false;
+  let blueprintInlineClosed = false;
+
+  function expandQuestionFolioInline() {
+    folioInlineClosed = false;
+    const details = document.getElementById('story-folio-details');
+    const notice = document.getElementById('story-folio-collapsed-notice');
+    if (details) details.style.display = 'block';
+    if (notice) notice.classList.remove('visible');
+  }
+
+  function closeQuestionFolioInline() {
+    folioInlineClosed = true;
+    const details = document.getElementById('story-folio-details');
+    const notice = document.getElementById('story-folio-collapsed-notice');
+    if (details) details.style.display = 'none';
+    if (notice) notice.classList.add('visible');
+  }
+
+  function handleQuestionFolioExpand() {
+    if (folioInlineClosed) {
+      expandQuestionFolioInline();
+    } else {
+      openQuestionModal(currentQuestionIdx, 'question');
+    }
+  }
+
+  function expandBlueprintInline() {
+    blueprintInlineClosed = false;
+    const details = document.getElementById('blueprint-panel-details');
+    const notice = document.getElementById('blueprint-collapsed-notice');
+    if (details) details.style.display = 'block';
+    if (notice) notice.classList.remove('visible');
+  }
+
+  function closeBlueprintInline() {
+    blueprintInlineClosed = true;
+    const details = document.getElementById('blueprint-panel-details');
+    const notice = document.getElementById('blueprint-collapsed-notice');
+    if (details) details.style.display = 'none';
+    if (notice) notice.classList.add('visible');
+  }
+
+  function handleBlueprintExpand() {
+    if (blueprintInlineClosed) {
+      expandBlueprintInline();
+    } else {
+      openQuestionModal(currentQuestionIdx, 'architecture');
+    }
+  }
 
   function renderQuestionRail() {
     const rail = document.getElementById('q-rail');
-    rail.innerHTML = '';
+    const pills = [];
     QUESTIONS.forEach((q, idx) => {
       if (currentActFilter !== 'all' && q.act !== currentActFilter) return;
       const btn = document.createElement('button');
@@ -2980,8 +3473,9 @@ $ agents deploy sre-guardian --env=prod      # Registered, OBO-enforced, Model-A
       btn.textContent = 'Q' + String(q.num).padStart(2, '0');
       btn.title = `Q${q.num}: ${q.question}`;
       btn.onclick = () => selectQuestion(idx);
-      rail.appendChild(btn);
+      pills.push(btn);
     });
+    rail.replaceChildren(...pills);
   }
 
   function selectQuestion(idx) {
@@ -3093,6 +3587,10 @@ $ agents deploy sre-guardian --env=prod      # Registered, OBO-enforced, Model-A
     } else {
       renderQuestionRail();
     }
+    const readerStage = document.getElementById('all-questions-reader');
+    if (readerStage && readerStage.classList.contains('visible')) {
+      renderAllQuestionsReader();
+    }
   }
 
   function setStoryViewMode(mode) {
@@ -3114,32 +3612,177 @@ $ agents deploy sre-guardian --env=prod      # Registered, OBO-enforced, Model-A
     }
   }
 
+  function expandAllReaderCards() {
+    closedReaderQuestions.clear();
+    renderAllQuestionsReader();
+  }
+
+  function closeAllReaderCards() {
+    QUESTIONS.forEach(q => closedReaderQuestions.add(q.num));
+    renderAllQuestionsReader();
+  }
+
   function renderAllQuestionsReader() {
     const container = document.getElementById('all-questions-reader');
     const filtered = QUESTIONS.filter(q => currentActFilter === 'all' || q.act === currentActFilter);
-    container.innerHTML = filtered.map(q => `
-      <article class="reader-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <span class="persona-badge ${q.persona}">${q.personaLabel}</span>
-          <span class="slide-ref-badge">${q.slides}</span>
-        </div>
-        <div class="story-q-number">Question ${String(q.num).padStart(2, '0')} of 20</div>
-        <h3 style="font-size:24px; margin-bottom:14px;">${q.question}</h3>
-        <div class="narrative-block wall">
-          <div class="narrative-label">⚡ The 2:00 AM Wall We Hit</div>
-          <p class="narrative-text">${q.wall}</p>
-        </div>
-        <div class="narrative-block pivot">
-          <div class="narrative-label">🧭 The Architectural Pivot (${q.delta})</div>
-          <p class="narrative-text">${q.pivot}</p>
-        </div>
-        <div class="narrative-block incident">
-          <div class="narrative-label">🔬 In Incident-2277</div>
-          <p class="narrative-text">${q.incident}</p>
-          <pre class="story-code-snippet">${q.code}</pre>
-        </div>
-      </article>
-    `).join('');
+    const elements = [];
+
+    const bulkBar = document.createElement('div');
+    bulkBar.style.display = 'flex';
+    bulkBar.style.justifyContent = 'space-between';
+    bulkBar.style.alignItems = 'center';
+    bulkBar.style.flexWrap = 'wrap';
+    bulkBar.style.gap = '10px';
+    bulkBar.style.padding = '10px 14px';
+    bulkBar.style.background = 'var(--bg-paper-deep)';
+    bulkBar.style.border = '1px solid var(--border-strong)';
+    bulkBar.style.borderRadius = 'var(--radius-sm)';
+
+    const bulkLabel = document.createElement('span');
+    bulkLabel.style.fontFamily = 'var(--mono)';
+    bulkLabel.style.fontSize = '12px';
+    bulkLabel.style.fontWeight = '700';
+    bulkLabel.textContent = `Showing ${filtered.length} Questions · Expand any question to discuss in detail`;
+
+    const bulkBtns = document.createElement('div');
+    bulkBtns.style.display = 'flex';
+    bulkBtns.style.gap = '8px';
+
+    const btnExpandAll = document.createElement('button');
+    btnExpandAll.className = 'question-expand-btn';
+    btnExpandAll.textContent = '⤢ Expand All Questions';
+    btnExpandAll.onclick = () => expandAllReaderCards();
+
+    const btnCloseAll = document.createElement('button');
+    btnCloseAll.className = 'question-close-btn';
+    btnCloseAll.textContent = '✕ Close All Questions';
+    btnCloseAll.onclick = () => closeAllReaderCards();
+
+    bulkBtns.append(btnExpandAll, btnCloseAll);
+    bulkBar.append(bulkLabel, bulkBtns);
+    elements.push(bulkBar);
+
+    filtered.forEach(q => {
+      const qIdx = QUESTIONS.findIndex(item => item.num === q.num);
+      const isClosed = closedReaderQuestions.has(q.num);
+
+      const article = document.createElement('article');
+      article.className = 'reader-card';
+
+      const headerRow = document.createElement('div');
+      headerRow.style.display = 'flex';
+      headerRow.style.justifyContent = 'space-between';
+      headerRow.style.alignItems = 'center';
+      headerRow.style.flexWrap = 'wrap';
+      headerRow.style.gap = '10px';
+      headerRow.style.marginBottom = '10px';
+
+      const badge = document.createElement('span');
+      badge.className = 'persona-badge ' + q.persona;
+      badge.textContent = q.personaLabel;
+
+      const rightControls = document.createElement('div');
+      rightControls.style.display = 'flex';
+      rightControls.style.alignItems = 'center';
+      rightControls.style.gap = '8px';
+      rightControls.style.flexWrap = 'wrap';
+
+      const slideRef = document.createElement('span');
+      slideRef.className = 'slide-ref-badge';
+      slideRef.textContent = q.slides;
+
+      const expandBtn = document.createElement('button');
+      expandBtn.className = 'question-expand-btn';
+      expandBtn.textContent = '⤢ Expand';
+      expandBtn.title = 'Expand question for detailed discussion';
+      expandBtn.onclick = () => {
+        if (closedReaderQuestions.has(q.num)) {
+          closedReaderQuestions.delete(q.num);
+          renderAllQuestionsReader();
+        } else {
+          openQuestionModal(qIdx, 'question');
+        }
+      };
+
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'question-close-btn';
+      closeBtn.textContent = '✕ Close';
+      closeBtn.title = 'Close question details inline';
+      closeBtn.onclick = () => {
+        closedReaderQuestions.add(q.num);
+        renderAllQuestionsReader();
+      };
+
+      rightControls.append(slideRef, expandBtn, closeBtn);
+      headerRow.append(badge, rightControls);
+
+      const qNum = document.createElement('div');
+      qNum.className = 'story-q-number';
+      qNum.textContent = `Question ${String(q.num).padStart(2, '0')} of 20`;
+
+      const qTitle = document.createElement('h3');
+      qTitle.style.fontSize = '24px';
+      qTitle.style.marginBottom = isClosed ? '4px' : '14px';
+      qTitle.textContent = q.question;
+
+      article.append(headerRow, qNum, qTitle);
+
+      if (isClosed) {
+        const closedNotice = document.createElement('div');
+        closedNotice.className = 'collapsed-inline-notice visible';
+        const span = document.createElement('span');
+        span.textContent = 'Details closed. Click ⤢ Expand to open inline or in full screen.';
+        const btnGroup = document.createElement('div');
+        btnGroup.style.display = 'flex';
+        btnGroup.style.gap = '8px';
+
+        const btnOpenInline = document.createElement('button');
+        btnOpenInline.className = 'question-expand-btn';
+        btnOpenInline.textContent = '⤢ Expand Inline';
+        btnOpenInline.onclick = () => {
+          closedReaderQuestions.delete(q.num);
+          renderAllQuestionsReader();
+        };
+
+        const btnOpenModal = document.createElement('button');
+        btnOpenModal.className = 'question-expand-btn';
+        btnOpenModal.textContent = '⤢ Fullscreen Detail';
+        btnOpenModal.onclick = () => openQuestionModal(qIdx, 'question');
+
+        btnGroup.append(btnOpenInline, btnOpenModal);
+        closedNotice.append(span, btnGroup);
+        article.appendChild(closedNotice);
+      } else {
+        const makeBlock = (cls, lblText, bodyText, codeText) => {
+          const blk = document.createElement('div');
+          blk.className = 'narrative-block ' + cls;
+          const lbl = document.createElement('div');
+          lbl.className = 'narrative-label';
+          lbl.textContent = lblText;
+          const p = document.createElement('p');
+          p.className = 'narrative-text';
+          p.textContent = bodyText;
+          blk.append(lbl, p);
+          if (codeText) {
+            const pre = document.createElement('pre');
+            pre.className = 'story-code-snippet';
+            pre.textContent = codeText;
+            blk.appendChild(pre);
+          }
+          return blk;
+        };
+
+        article.append(
+          makeBlock('wall', '⚡ The 2:00 AM Wall We Hit', q.wall, null),
+          makeBlock('pivot', `🧭 The Architectural Pivot (${q.delta})`, q.pivot, null),
+          makeBlock('incident', '🔬 In Incident-2277', q.incident, q.code)
+        );
+      }
+
+      elements.push(article);
+    });
+
+    container.replaceChildren(...elements);
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -3345,13 +3988,18 @@ OVERALL VERTEX GENAI EVAL SCORE  | 5/5 PASS      | 1.00`
     }
   }
 
-  // Keyboard navigation for Chapter I Slides and Escape for Diagram Modal
+  // Keyboard navigation for Chapter I Slides, Question Modal, and Escape for Diagram Modal
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeDiagramModal();
       return;
     }
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (activeModalQuestionMode) {
+      if (e.key === 'ArrowRight') stepModalQuestion(1);
+      if (e.key === 'ArrowLeft') stepModalQuestion(-1);
+      return;
+    }
     if (window.scrollY < 700) {
       if (e.key === 'ArrowRight') stepPrologueSlide(1);
       if (e.key === 'ArrowLeft') stepPrologueSlide(-1);
